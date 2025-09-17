@@ -11,13 +11,13 @@ SIGIL transforms simple YAML lists into sophisticated random generators with int
 ## Installation
 
 ```bash
-npm install sigil
+npm install @gulluth/sigil
 ```
 
 ## Quick Start
 
 ```javascript
-import { SigilEngine } from 'sigil';
+import { SigilEngine } from '@gulluth/sigil';
 
 const engine = new SigilEngine();
 await engine.loadData('./data/my-data.yaml');
