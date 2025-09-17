@@ -308,14 +308,38 @@ export class SigilEngine {
                 const results: string[] = [];
 
                 for (const option of options) {
-                    if (option.startsWith('[') && option.endsWith(']')) {
-                        // This is a table reference, process it
-                        const tableRef = option.slice(1, -1); // Remove brackets
+                    // Check if this is a table reference (possibly with sigils)
+                    let tableRef = option;
+                    let isTableReference = false;
+
+                    // Handle table references like [table], [table]?, [table]!, etc.
+                    const tableMatch = option.match(/^\[([^\]]+)\](.*)$/);
+                    if (tableMatch) {
+                        isTableReference = true;
+                        tableRef = tableMatch[1]; // The table name
+                        const sigils = tableMatch[2]; // Any sigils after the ]
+
+                        // For AND combinations, strip optional (?) since AND takes precedence
+                        if (sigils.includes('?')) {
+                            // Remove the ? but keep other sigils
+                            tableRef = tableRef + sigils.replace('?', '');
+                        } else {
+                            tableRef = tableRef + sigils;
+                        }
+                    } else {
+                        // For AND combinations, strip trailing ? from literal strings too
+                        // since AND takes precedence over optional
+                        if (option.endsWith('?')) {
+                            tableRef = option.slice(0, -1);
+                        }
+                    }
+
+                    if (isTableReference) {
                         const tableResult = this.resolveTableReference(tableRef);
                         results.push(tableResult);
                     } else {
-                        // This is a literal string
-                        results.push(option);
+                        // This is a literal string (possibly with ? removed)
+                        results.push(tableRef);
                     }
                 }
 
