@@ -37,22 +37,55 @@ console.log(result);
 - **Graceful error handling** with missing data
 - **Browser and Node.js support** for flexible deployment
 
+## Sigil Reference
+
+SIGIL uses symbolic characters called **sigils** to define generation behavior. Each sigil has a specific meaning and purpose within templates:
+
+### Core Sigils
+
+| Sigil | Name                 | Purpose                       | Example                             |
+| ----- | -------------------- | ----------------------------- | ----------------------------------- |
+| `[]`  | **Reference Sigil**  | Access lists and tables       | `[device]` → "scanner"              |
+| `{}`  | **Inline Sigil**     | Inline processing container   | `{red\|blue}` → "red"               |
+| `\|`  | **OR Sigil**         | Choose one option             | `{this\|that}` → "this"             |
+| `&`   | **AND Sigil**        | Combine multiple selections   | `{red&large}` → "redlarge"          |
+| `^`   | **Weight Sigil**     | Control selection probability | `laser rifle ^2` → 2x more likely   |
+| `?`   | **Optional Sigil**   | Random inclusion              | `[device?]` → may or may not appear |
+| `!`   | **Exclusion Sigil**  | Filter out items              | `[device!broken]` → working devices |
+| `*`   | **Repetition Sigil** | Repeat selections             | `[component*3]` → 3 components      |
+| `.`   | **Modifier Sigil**   | Apply text transformations    | `[name.capitalize]` → "John"        |
+
+### Special Patterns
+
+| Pattern          | Purpose             | Example                                     |
+| ---------------- | ------------------- | ------------------------------------------- |
+| `{a}`            | Indefinite articles | `{a} [item]` → "an apple"                   |
+| `{1-10}`         | Number ranges       | `{1-10}` → random number 1-10               |
+| `table.subtable` | Hierarchical access | `[shape.triangle]` → from triangle subtable |
+
+### Sigil Combinations
+
+Sigils can be combined for complex behavior:
+- `[device*{2-4}?]` - Optionally generate 2-4 devices
+- `[material!radioactive.capitalize]` - Capitalized material, excluding radioactive
+- `{[condition]&[device]}` - Combine condition and device selections
+
 ## Complete Syntax Reference
 
 ### Basic Templates
 Reference lists using square brackets:
 ```yaml
 templates:
-  basic_item: "[adjective] [weapon]"
+  basic_item: "[condition] [device]"
 ```
 
 ### Weighted Lists
 Control probability using `^` notation:
 ```yaml
-weapons:
-  - sword ^2      # 2x more likely
-  - dagger        # default weight (1)
-  - staff ^0.5    # half as likely
+devices:
+  - laser rifle ^2      # 2x more likely
+  - plasma torch        # default weight (1)
+  - scanner ^0.5        # half as likely
 ```
 
 ### Hierarchical Selection
@@ -81,8 +114,25 @@ templates:
 
 **AND Combination** - Combine from two lists:
 ```yaml
+# Descriptive combinations
 templates:
-  combo: "A {red&large} object"  # e.g., "A large red object"
+  combo: "A {red&dwarf} object"  # e.g., "A reddwarf object"
+
+# Compound word generation (names, terms)
+name_prefixes:
+  - Zyx
+  - Nex
+  - Vor
+  - Keth
+
+name_suffixes:
+  - on
+  - ax
+  - prime
+  - core
+
+templates:
+  survivor_name: "{[name_prefixes]&[name_suffixes]}"  # e.g., "Zyxon", "Nexcore"
 ```
 
 **Mixed References** - Combine lists and inline options:
@@ -103,19 +153,19 @@ templates:
 **Optional Content** - Random inclusion using `?`:
 ```yaml
 templates:
-  item: "[weapon] [enhancement?]"  # Enhancement may or may not appear
+  item: "[device] [modification?]"  # Modification may or may not appear
 ```
 
 **Exclusion Filters** - Remove items using `!`:
 ```yaml
 templates:
-  mundane_weapon: "[weapon!magical]"  # All weapons except magical ones
+  working_device: "[device!broken]"  # All devices except broken ones
 ```
 
 **Repetition** - Repeat selections using `*`:
 ```yaml
 templates:
-  treasure: "[gem*{2-4}]"  # Generates 2-4 gems
+  treasure: "[component*{2-4}]"  # Generates 2-4 components
 ```
 
 ### Text Formatting
@@ -137,7 +187,7 @@ templates:
 **Markov Generation** - AI-style text from training data:
 ```yaml
 templates:
-  generated_name: "[first_names&surnames.markov]"
+  generated_callsign: "[survivor_names&settlements.markov]"
 ```
 
 ## Data Organization
@@ -146,17 +196,12 @@ templates:
 Lists with the same name from different files are automatically combined:
 
 ```yaml
-# fantasy.yaml
-weapons:
-  - sword
-  - bow
-
-# scifi.yaml  
-weapons:
+# post-apocalypse.yaml
+devices:
   - laser rifle
   - plasma cannon
 
-# Result: All weapons available together for genre blending
+# Result: All devices available together for genre blending
 ```
 
 ### File Structure
@@ -165,9 +210,9 @@ Organize your data across multiple YAML files:
 ```
 project/
 ├── data/
-│   ├── weapons.yaml
-│   ├── characters.yaml
-│   └── locations.yaml
+│   ├── devices.yaml
+│   ├── survivors.yaml
+│   └── settlements.yaml
 └── generator.js
 ```
 
@@ -180,20 +225,20 @@ Perfect for straightforward content:
 
 ```yaml
 # simple-data.yaml
-creatures:
-  - shambling corpse ^2
-  - shadow ^1.5
-  - possessed doll
+entities:
+  - radiation mutant ^2
+  - scavenger android ^1.5
+  - malfunctioning drone
 
 locations:
-  - abandoned asylum ^2
-  - cursed cemetery
-  - forgotten basement
+  - abandoned facility ^2
+  - irradiated wasteland
+  - underground bunker
 
 templates:
   encounter:
-    - "You hear [sounds] echoing from the [locations]"
-    - "A [atmosphere] [creatures] lurks nearby"
+    - "You detect [sounds] echoing from the [locations]"
+    - "A [atmosphere] [entities] prowls nearby"
 ```
 
 ### Hierarchical Structure (Organized Categories)
@@ -202,18 +247,18 @@ Better for complex, organized content:
 
 ```yaml
 # organized-data.yaml
-ship:
+vessel:
   type:
-    - frigate ^2
-    - destroyer
-    - scout vessel ^3
+    - transport ^2
+    - interceptor
+    - cargo hauler ^3
   status:
-    - functioning
+    - operational
     - damaged ^2
     - derelict ^1.5
 
 templates:
-  ship_description: "A [ship.status] [ship.type]"
+  vessel_description: "A [vessel.status] [vessel.type]"
 ```
 
 ## Error Handling & Reliability
