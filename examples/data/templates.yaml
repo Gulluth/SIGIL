@@ -40,3 +40,19 @@ templates:
   blended_item:
     - "You find {a} [weapon.enhancement] [weapon.melee] forged from [materials]"
     - "The artifact: {a} [colors] [materials] device with [weapon.enhancement] properties"
+
+  # AND Sigil Examples - compound word generation
+  survivor_names:
+    - "Contact established with {[name_prefixes]&[name_suffixes]}"
+    - "Survivor {[name_prefixes]&[name_suffixes]} reports from the wastelands"
+    - "Settlement leader {[name_prefixes]&[name_suffixes]} requests assistance"
+    
+  tech_items:
+    - "Found {a} {[tech_prefixes]&[tech_suffixes]} in the ruins"
+    - "The {[tech_prefixes]&[tech_suffixes]} emits {a} [colors] glow"
+    - "Activating the {[condition]&[tech_suffixes]} device"
+    
+  compound_discoveries:
+    - "Analyzing the {[materials]&[tech_suffixes]} reveals [stellar.phenomena]"
+    - "The {[atmosphere]&[tech_prefixes]} scanner detects [creatures*{1-2}]"
+    - "Your {[crew.roles]} activates the {[weapon.enhancement]&[tech_suffixes]}"

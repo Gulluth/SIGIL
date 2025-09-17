@@ -1,0 +1,56 @@
+# Compound Word Generation Data
+# Data specifically for demonstrating the & sigil functionality
+
+# Name generation components
+name_prefixes:
+  - Zyx
+  - Nex
+  - Vor
+  - Keth
+  - Drax
+  - Cyb
+  - Vex
+  - Nul
+
+name_suffixes:
+  - on
+  - ax
+  - prime
+  - core
+  - tech
+  - ion
+  - max
+  - zero
+
+# Technology prefixes for compound devices
+tech_prefixes:
+  - cyber
+  - nano
+  - bio
+  - quantum
+  - plasma
+  - neural
+  - holo
+  - grav
+
+# Technology suffixes for compound devices  
+tech_suffixes:
+  - scanner
+  - core
+  - matrix
+  - link
+  - blade
+  - field
+  - drive
+  - pod
+
+# Condition states for compound descriptions
+condition:
+  - damaged
+  - active
+  - dormant
+  - charged
+  - broken
+  - enhanced
+  - modified
+  - ancient

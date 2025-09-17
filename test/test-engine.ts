@@ -92,6 +92,114 @@ describe('SIGIL Template Engine', () => {
         });
     });
 
+    describe('AND sigil combinations', () => {
+        it('should combine inline options with & sigil for compound words', () => {
+            setupData();
+
+            const result = engine.generate('{red&large}');
+            assert.ok(typeof result === 'string', 'Should return a string');
+            assert.strictEqual(result, 'redlarge', 'Should concatenate without spaces');
+        });
+
+        it('should combine table references with & sigil', () => {
+            setupData();
+
+            // Create a simple test engine with known data
+            const testEngine = new SigilEngine({
+                colors: ['red', 'blue', 'green'],
+                sizes: ['small', 'large', 'tiny']
+            });
+
+            const result = testEngine.generate('{[colors]&[sizes]}');
+            assert.ok(typeof result === 'string', 'Should return a string');
+            assert.ok(result.length > 0, 'Should not be empty');
+            assert.ok(!result.includes(' '), 'Should not contain spaces');
+
+            // Result should be a combination of a color and size
+            const colors = ['red', 'blue', 'green'];
+            const sizes = ['small', 'large', 'tiny'];
+            const validCombinations = [];
+            for (const color of colors) {
+                for (const size of sizes) {
+                    validCombinations.push(color + size);
+                }
+            }
+            assert.ok(validCombinations.includes(result), `Result "${result}" should be a valid combination`);
+        });
+
+        it('should handle mixed references and inline options with & sigil', () => {
+            setupData();
+
+            const testEngine = new SigilEngine({
+                prefixes: ['cyber', 'nano', 'bio']
+            });
+
+            const result = testEngine.generate('{[prefixes]&tech}');
+            assert.ok(typeof result === 'string', 'Should return a string');
+            assert.ok(
+                result === 'cybertech' || result === 'nanotech' || result === 'biotech',
+                `Result "${result}" should be a valid combination`
+            );
+        });
+
+        it('should handle multiple & combinations', () => {
+            setupData();
+
+            const testEngine = new SigilEngine({
+                prefix: ['ultra', 'mega'],
+                base: ['core', 'matrix'],
+                suffix: ['prime', 'max']
+            });
+
+            const result = testEngine.generate('{[prefix]&[base]&[suffix]}');
+            assert.ok(typeof result === 'string', 'Should return a string');
+            assert.ok(result.length > 0, 'Should not be empty');
+            assert.ok(!result.includes(' '), 'Should not contain spaces');
+
+            // Should be a combination of all three parts
+            const prefixes = ['ultra', 'mega'];
+            const bases = ['core', 'matrix'];
+            const suffixes = ['prime', 'max'];
+            const validCombinations = [];
+            for (const prefix of prefixes) {
+                for (const base of bases) {
+                    for (const suffix of suffixes) {
+                        validCombinations.push(prefix + base + suffix);
+                    }
+                }
+            }
+            assert.ok(validCombinations.includes(result), `Result "${result}" should be a valid three-part combination`);
+        });
+
+        it('should work within larger templates', () => {
+            setupData();
+
+            const testEngine = new SigilEngine({
+                name_parts: {
+                    prefix: ['Zyx', 'Nex', 'Vor'],
+                    suffix: ['on', 'ax', 'prime']
+                }
+            });
+
+            const result = testEngine.generate('Survivor {[name_parts.prefix]&[name_parts.suffix]} reports in');
+            assert.ok(typeof result === 'string', 'Should return a string');
+            assert.ok(result.startsWith('Survivor '), 'Should preserve prefix');
+            assert.ok(result.endsWith(' reports in'), 'Should preserve suffix');
+
+            const nameMatch = result.match(/Survivor (\w+) reports in/);
+            assert.ok(nameMatch, 'Should match expected format');
+
+            const name = nameMatch[1];
+            const validNames = [];
+            for (const prefix of ['Zyx', 'Nex', 'Vor']) {
+                for (const suffix of ['on', 'ax', 'prime']) {
+                    validNames.push(prefix + suffix);
+                }
+            }
+            assert.ok(validNames.includes(name), `Generated name "${name}" should be valid`);
+        });
+    });
+
     describe('Number ranges', () => {
         it('should generate numbers within specified ranges', () => {
             setupData();
