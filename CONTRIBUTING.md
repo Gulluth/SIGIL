@@ -56,48 +56,9 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) specific
 - Add `BREAKING CHANGE:` in the footer or use `!` after type (triggers major version bump)
 - Example: `feat!: remove deprecated .old sigil syntax`
 
-### Release Commands
+## Release Process
 
-**Important**: All release commands automatically run tests first. If tests fail, the release is aborted.
-
-```bash
-# Automatic versioning (recommended)
-npm run release                # Analyzes commits and bumps version appropriately
-
-# Manual version specification
-npm run release:patch          # 0.1.0 → 0.1.1 (bug fixes)
-npm run release:minor          # 0.1.0 → 0.2.0 (new features)
-npm run release:major          # 0.1.0 → 1.0.0 (breaking changes)
-npm run release:prerelease     # 0.1.0 → 0.1.1-0 (alpha/beta releases)
-
-# Preview what would happen (safe)
-npm run release:dry-run        # Shows changes without making them
-```
-
-### What happens during a release
-
-1. **Tests run**: Ensures codebase is stable
-2. **Version bumped**: Updates `package.json` version
-3. **Changelog generated**: Updates `CHANGELOG.md` based on commits
-4. **Git tag created**: Tags the release in git
-5. **Commit created**: Commits the version and changelog changes
-
-### Release workflow example
-
-```bash
-# 1. Make your changes with conventional commits
-git add .
-git commit -m "feat: add new .shuffle sigil for randomizing lists"
-
-# 2. When ready to release, run:
-npm run release
-
-# 3. Push the release
-git push --follow-tags origin main
-
-# 4. Optionally publish to npm (if this becomes a public package)
-npm publish
-```
+For complete release instructions, see [`RELEASE.md`](RELEASE.md).
 
 ## Feature Development Guidelines
 
