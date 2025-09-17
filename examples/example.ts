@@ -174,4 +174,61 @@ try {
     console.log('AND sigil example error:', error);
 }
 
+console.log('\n============================================================\n');
+
+// Example 5: Markov Generation - AI-style text generation
+console.log('5. MARKOV GENERATION EXAMPLE');
+console.log('   Using .markov modifier for AI-style text generation\n');
+
+try {
+    const markovData = loadSigilData([
+        './examples/data/themes/compound.yaml',
+        './examples/data/themes/scifi.yaml',
+        './examples/data/templates.yaml'
+    ]);
+
+    const engine = new SigilEngine(markovData.lists);
+
+    // Generate Markov names
+    if (markovData.templates.markov_names) {
+        console.log('Markov Name Generation:');
+        for (let i = 0; i < 5; i++) {
+            const result = engine.generate(markovData.templates.markov_names[0]);
+            console.log(`  ${i + 1}. ${result}`);
+        }
+        console.log();
+    }
+
+    // Generate Markov tech terms
+    if (markovData.templates.markov_tech) {
+        console.log('Markov Technology Terms:');
+        for (let i = 0; i < 5; i++) {
+            const result = engine.generate(markovData.templates.markov_tech[0]);
+            console.log(`  ${i + 1}. ${result}`);
+        }
+        console.log();
+    }
+
+    // Generate combined Markov discoveries
+    if (markovData.templates.markov_discoveries) {
+        console.log('Markov Combined Discoveries:');
+        for (let i = 0; i < 5; i++) {
+            const result = engine.generate(markovData.templates.markov_discoveries[2]); // Mixed technology template
+            console.log(`  ${i + 1}. ${result}`);
+        }
+        console.log();
+    }
+
+    // Direct Markov examples
+    console.log('Direct Markov Examples:');
+    console.log(`Generated name: ${engine.generate('[name_prefixes.markov]')}`);
+    console.log(`Generated tech: ${engine.generate('[tech_suffixes.markov]')}`);
+    console.log(`Multiple generation: ${engine.generate('[tech_prefixes.markov*3]')}`);
+    console.log(`Markov + AND sigil: ${engine.generate('{[tech_prefixes.markov]&[tech_suffixes.markov]}')}`);
+    console.log(`Material discovery: ${engine.generate('[materials.markov]')}`);
+
+} catch (error) {
+    console.log('Markov generation example error:', error);
+}
+
 console.log('\n=== End Examples ===');

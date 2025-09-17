@@ -4,6 +4,7 @@
  */
 
 import { SigilData } from './yaml-loader';
+import { generateMarkov } from './markov-generator';
 
 export interface TemplateOptions {
     maxDepth?: number;
@@ -209,9 +210,38 @@ export class SigilEngine {
         const parts = tablePath.split('.');
         if (parts.length > 1) {
             const lastPart = parts[parts.length - 1];
-            if (['capitalize', 'lowercase', 'pluralForm'].includes(lastPart)) {
+            if (['capitalize', 'lowercase', 'pluralForm', 'markov'].includes(lastPart)) {
                 modifier = lastPart;
                 tablePath = parts.slice(0, -1).join('.');
+            }
+        }
+
+        // Handle Markov generation specially (needs access to full list)
+        if (modifier === 'markov') {
+            const list = getNestedValue(this.lists, tablePath);
+            if (Array.isArray(list)) {
+                // Filter out exclusions if any
+                let filteredList = list;
+                if (exclusions.length > 0) {
+                    filteredList = list.filter(item => {
+                        const cleanItem = item.replace(/ \^[\d.]+$/, ''); // Remove weight for comparison
+                        return !exclusions.some(exc => cleanItem.toLowerCase().includes(exc.toLowerCase()));
+                    });
+                }
+
+                if (filteredList.length === 0) {
+                    return `[${tablePath}]`; // No items after filtering
+                }
+
+                // Generate multiple Markov results if repetition is requested
+                const results: string[] = [];
+                for (let i = 0; i < repetition; i++) {
+                    const markovResult = generateMarkov(filteredList);
+                    results.push(markovResult);
+                }
+                return results.join(', ');
+            } else {
+                return `[${tablePath}]`; // Graceful degradation
             }
         }
 
