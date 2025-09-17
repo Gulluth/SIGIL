@@ -111,4 +111,67 @@ try {
     console.log('Genre blending error:', error);
 }
 
+console.log('\n============================================================\n');
+
+// Example 4: AND Sigil (&) - Compound Word Generation
+console.log('4. AND SIGIL EXAMPLE');
+console.log('   Using & sigil for compound word generation\n');
+
+try {
+    const compoundData = loadSigilData([
+        './examples/data/themes/compound.yaml',
+        './examples/data/themes/scifi.yaml',
+        './examples/data/templates.yaml'
+    ]);
+
+    console.log('Compound generation lists:');
+    console.log('Name prefixes:', compoundData.lists.name_prefixes);
+    console.log('Name suffixes:', compoundData.lists.name_suffixes);
+    console.log('Tech prefixes:', compoundData.lists.tech_prefixes);
+    console.log('Tech suffixes:', compoundData.lists.tech_suffixes);
+    console.log();
+
+    const engine = new SigilEngine(compoundData.lists);
+
+    // Generate survivor names using & sigil
+    if (compoundData.templates.survivor_names) {
+        console.log('Survivor Names (using & sigil):');
+        for (let i = 0; i < 5; i++) {
+            const result = engine.generate(compoundData.templates.survivor_names[0]);
+            console.log(`  ${i + 1}. ${result}`);
+        }
+        console.log();
+    }
+
+    // Generate tech items using & sigil
+    if (compoundData.templates.tech_items) {
+        console.log('Technology Items (using & sigil):');
+        for (let i = 0; i < 5; i++) {
+            const result = engine.generate(compoundData.templates.tech_items[0]);
+            console.log(`  ${i + 1}. ${result}`);
+        }
+        console.log();
+    }
+
+    // Generate compound discoveries
+    if (compoundData.templates.compound_discoveries) {
+        console.log('Compound Discoveries (using & sigil):');
+        for (let i = 0; i < 5; i++) {
+            const result = engine.generate(compoundData.templates.compound_discoveries[0]);
+            console.log(`  ${i + 1}. ${result}`);
+        }
+        console.log();
+    }
+
+    // Direct & sigil examples
+    console.log('Direct & Sigil Examples:');
+    console.log(`Name: ${engine.generate('{[name_prefixes]&[name_suffixes]}')}`);
+    console.log(`Device: ${engine.generate('{[tech_prefixes]&[tech_suffixes]}')}`);
+    console.log(`Mixed: ${engine.generate('{cyber&[tech_suffixes]}')}`);
+    console.log(`Triple: ${engine.generate('{[condition]&[tech_prefixes]&[tech_suffixes]}')}`);
+
+} catch (error) {
+    console.log('AND sigil example error:', error);
+}
+
 console.log('\n=== End Examples ===');

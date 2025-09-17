@@ -135,14 +135,14 @@ export class SigilEngine {
         // Process [table] references (including modifiers, optional, exclusion, repetition)
         result = this.processTableReferences(result);
 
-        // Process {a} indefinite articles
-        result = this.processIndefiniteArticles(result);
-
-        // Process {this|that} inline randomization
+        // Process {this|that} inline randomization and {option&option} combinations
         result = this.processInlineRandomization(result);
 
         // Process {1-10} number ranges
         result = this.processNumberRanges(result);
+
+        // Process {a} indefinite articles (after compound words are generated)
+        result = this.processIndefiniteArticles(result);
 
         this.depth--;
         return result;
@@ -266,13 +266,33 @@ export class SigilEngine {
     }
 
     private processInlineRandomization(text: string): string {
-        // Pattern: {option1|option2|option3}
+        // Pattern: {option1|option2|option3} OR {option1&option2&option3}
         return text.replace(/\{([^}]+)\}/g, (match, content) => {
             if (content.includes('|')) {
+                // OR logic: choose one option
                 const options = content.split('|').map((opt: string) => opt.trim());
                 return options[Math.floor(Math.random() * options.length)];
+            } else if (content.includes('&')) {
+                // AND logic: combine all options
+                const options = content.split('&').map((opt: string) => opt.trim());
+                const results: string[] = [];
+
+                for (const option of options) {
+                    if (option.startsWith('[') && option.endsWith(']')) {
+                        // This is a table reference, process it
+                        const tableRef = option.slice(1, -1); // Remove brackets
+                        const tableResult = this.resolveTableReference(tableRef);
+                        results.push(tableResult);
+                    } else {
+                        // This is a literal string
+                        results.push(option);
+                    }
+                }
+
+                // Combine results without spaces for compound words
+                return results.join('');
             }
-            return match; // Not a randomization pattern
+            return match; // Not a recognized pattern
         });
     }
 
