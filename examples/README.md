@@ -36,7 +36,7 @@ node dist/examples/example.js
 
 ## What the Examples Demonstrate
 
-The example script (`example.ts`) showcases three key SIGIL features:
+The example script (`example.ts`) showcases four key SIGIL features:
 
 ### 1. Flat Structure (Horror Theme)
 - Simple YAML lists for straightforward content
@@ -53,12 +53,18 @@ The example script (`example.ts`) showcases three key SIGIL features:
 - Demonstrates SIGIL's power for creative combinations
 - Uses `fantasy.yaml`, `scifi.yaml`, and `templates.yaml`
 
+### 4. AND Sigil (&) - Compound Word Generation
+- Uses the `&` sigil to create compound words and names
+- Demonstrates procedural name generation and tech terms
+- Uses `compound.yaml`, `scifi.yaml`, and `templates.yaml`
+
 ## Example Data Files
 
 - **`horror.yaml`** - Horror themed content using simple lists
 - **`fantasy.yaml`** - Medieval themed fantasy content using a mix of hierarchical and flat lists
 - **`scifi.yaml`** - Sci-Fi themed content using a more complex structure
-- **`templates.yaml`** - Shared templates
+- **`compound.yaml`** - Name prefixes/suffixes and tech components for & sigil examples
+- **`templates.yaml`** - Shared templates including & sigil demonstrations
 
 ## Expected Output
 
@@ -76,6 +82,11 @@ Space Missions:
 Genre-Blended Items:
   1. A crystalline sword
   2. A nano-carbon axe
+
+AND Sigil Examples:
+  1. Contact established with Nexcore
+  2. Found a nanoscanner in the ruins
+  3. Triple compound: activecybermatrix
 ```
 
 ## Customizing the Examples
