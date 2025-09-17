@@ -1,6 +1,6 @@
 {
   "name": "sigil",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "SIGIL (Sigil Is Generative Interpretive Language) - A minimalist YAML-based DSL for worldbuilding generators with automatic list merging and plugin architecture",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
@@ -11,7 +11,13 @@
     "example": "npm run build && node dist/examples/example.js",
     "test": "npm run build && node --test dist/test/*.js",
     "test:watch": "npm run build && node --test --watch dist/test/*.js",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "release": "npm test && standard-version",
+    "release:patch": "npm test && standard-version --release-as patch",
+    "release:minor": "npm test && standard-version --release-as minor",
+    "release:major": "npm test && standard-version --release-as major",
+    "release:prerelease": "npm test && standard-version --prerelease",
+    "release:dry-run": "standard-version --dry-run"
   },
   "files": [
     "dist/src/**/*",
@@ -47,6 +53,7 @@
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^24.4.0",
+    "standard-version": "^9.5.0",
     "typescript": "^5.9.2"
   },
   "dependencies": {
