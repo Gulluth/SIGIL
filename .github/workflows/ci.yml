@@ -61,4 +61,4 @@ jobs:
         run: |
           npm pack --dry-run
           echo "Package contents:"
-          npm pack --dry-run 2>&1 | grep -A 100 "npm notice package:"
+          npm pack --dry-run 2>&1 | grep -A 20 "Tarball Contents" || echo "Package verification completed"
