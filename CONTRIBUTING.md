@@ -54,11 +54,10 @@ Follow the [Conventional Commits](https://www.conventionalcommits.org/) specific
 
 **Breaking changes:**
 - Add `BREAKING CHANGE:` in the footer or use `!` after type (triggers major version bump)
-- Example: `feat!: remove deprecated .old sigil syntax`
 
 ## Release Process
 
-For complete release instructions, see [`RELEASE.md`](RELEASE.md).
+For complete release instructions, see [`docs/release-process.md`](docs/release-process.md).
 
 ## Feature Development Guidelines
 

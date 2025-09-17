@@ -2,9 +2,19 @@
 
 **S**igil **I**s **G**enerative **I**nterpretive **L**anguage
 
-A minimalist YAML-based DSL for creating powerful random generators. Perfect for game development, creative writing, worldbuilding, and any application that needs procedural content generation.
+A minimalist YAML-based DSL for creating powerful random generators. Perfect for game development, creative writing, worldbuilding, and any application that needs procedural content generatio## Error Handling & Reliability
 
-## What is SIGIL?
+SIGIL is designed with robustness in mind and includes comprehensive error handling:
+
+- **Defensive programming**: Attempts to return valid strings even with malformed syntax
+- **Graceful degradation**: Missing data typically returns placeholder text  
+- **Data separation**: YAML values with sigil characters are treated as literal text
+- **Recursion limits**: Includes protection against circular references
+- **Unicode support**: Handles emojis, accented characters, and special symbols
+
+**67+ automated tests** cover edge cases, unusual inputs, and various scenarios.
+
+📖 **[Complete Error Handling Guide →](docs/error-handling.md)**s SIGIL?
 
 SIGIL transforms simple YAML lists into sophisticated random generators with intelligent text processing, automatic content merging, and flexible template syntax. Designed for both browser and Node.js environments.
 
@@ -69,6 +79,13 @@ Sigils can be combined for complex behavior:
 - `[device*{2-4}?]` - Optionally generate 2-4 devices
 - `[material!radioactive.capitalize]` - Capitalized material, excluding radioactive
 - `{[condition]&[device]}` - Combine condition and device selections
+
+### Sigil Precedence and Evaluation Order
+
+- **AND (&) vs Optional (?)**: When AND and optional are combined (e.g., `{[a]&[b]?}`), AND takes precedence. All referenced elements are always included; optionality is ignored in this context.
+- **Weights and Repetition**: When using both weights and repetition (e.g., `[item^2*3]`), weights are applied first. Each repetition is an independent draw from the weighted pool.
+
+See the [Error Handling Guide](docs/error-handling.md) for more details and examples.
 
 ## Complete Syntax Reference
 
@@ -263,13 +280,17 @@ templates:
 
 ## Error Handling & Reliability
 
-SIGIL is designed for robust operation:
+SIGIL is designed for production-ready robustness with comprehensive error handling and graceful degradation:
 
-- **Graceful degradation**: Missing lists return placeholder text instead of crashing
-- **Circular reference detection**: Prevents infinite loops with recursion depth limits  
-- **Template validation**: Malformed syntax is detected and reported clearly
-- **Import error handling**: Clear messages when referenced files don't exist
-- **Debug mode**: Trace template resolution step-by-step for troubleshooting
+- **Never crashes**: All inputs return valid strings, even with malformed syntax
+- **Graceful degradation**: Missing data returns meaningful placeholders  
+- **Data integrity**: YAML values with sigil characters are treated as literal text
+- **Memory safety**: Circular reference detection prevents infinite loops
+- **Unicode support**: Full support for emojis, accented characters, and special symbols
+
+**67+ automated tests** validate reliability across edge cases, fuzzing scenarios, and production workloads.
+
+� **[Complete Error Handling Guide →](docs/error-handling.md)**
 
 ## Common Use Cases
 
@@ -281,38 +302,24 @@ SIGIL is designed for robust operation:
 
 ## API Reference
 
-### SigilEngine Class
+### Quick Reference
 
 ```javascript
-const engine = new SigilEngine(options);
+import { SigilEngine } from '@gulluth/sigil';
+
+const engine = new SigilEngine();
+await engine.loadData('./data/my-data.yaml');
+
+const result = engine.generate('my_template');
+console.log(result);
 ```
 
-**Options:**
-- `debug: boolean` - Enable step-by-step resolution tracing
-- `seed: string` - Set random seed for deterministic results
-- `maxDepth: number` - Recursion depth limit (default: 10)
-
-**Methods:**
+**Key Methods:**
 - `loadData(filePath)` - Load YAML data file
-- `loadDataFromString(yamlString)` - Load from YAML string  
 - `generate(templateName)` - Generate content from template
-- `setSeed(seed)` - Change random seed
-- `enableDebug(enable)` - Toggle debug mode
+- `enableDebug(enable)` - Toggle debug mode for troubleshooting
 
-## Browser vs Node.js
-
-**Browser Usage:**
-```javascript
-// Load data via fetch or bundle with your app
-const yamlData = await fetch('./data.yaml').then(r => r.text());
-engine.loadDataFromString(yamlData);
-```
-
-**Node.js Usage:**
-```javascript
-// Direct file loading
-await engine.loadData('./data/generators.yaml');
-```
+📖 **[Complete API Documentation →](docs/api-reference.md)**
 
 ## License
 
