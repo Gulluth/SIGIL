@@ -1,6 +1,6 @@
 /**
  * SIGIL - Sigil Is Generative Interpretive Language
- * A minimalist YAML-based DSL for TTRPG world building generators
+ * A minimalist YAML-based DSL for creating powerful random generators.
  */
 
 // Export main engine and utilities

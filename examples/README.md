@@ -41,26 +41,24 @@ The example script (`example.ts`) showcases three key SIGIL features:
 ### 1. Flat Structure (Horror Theme)
 - Simple YAML lists for straightforward content
 - Basic template processing
-- Uses `horror-flat.yaml` and `example-templates.yaml`
+- Uses `horror.yaml` and `templates.yaml`
 
 ### 2. Hierarchical Structure (Space Theme)  
 - Organized categories using dot notation
 - Complex data organization
-- Uses `space-nested.yaml` and `example-templates.yaml`
+- Uses `scifi.yaml` and `templates.yaml`
 
 ### 3. Genre Blending
 - Automatic list merging from multiple files
 - Demonstrates SIGIL's power for creative combinations
-- Uses `medieval-data.yaml`, `scifi-data.yaml`, and `global-templates.yaml`
+- Uses `fantasy.yaml`, `scifi.yaml`, and `templates.yaml`
 
 ## Example Data Files
 
-- **`horror-flat.yaml`** - Simple horror-themed lists
-- **`space-nested.yaml`** - Hierarchical space/sci-fi data
-- **`medieval-data.yaml`** - Medieval fantasy content
-- **`scifi-data.yaml`** - Science fiction content
-- **`global-templates.yaml`** - Shared templates
-- **`example-templates.yaml`** - Demo-specific templates
+- **`horror.yaml`** - Horror themed content using simple lists
+- **`fantasy.yaml`** - Medieval themed fantasy content using a mix of hierarchical and flat lists
+- **`scifi.yaml`** - Sci-Fi themed content using a more complex structure
+- **`templates.yaml`** - Shared templates
 
 ## Expected Output
 
