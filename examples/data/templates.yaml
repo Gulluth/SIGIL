@@ -56,3 +56,19 @@ templates:
     - "Analyzing the {[materials]&[tech_suffixes]} reveals [stellar.phenomena]"
     - "The {[atmosphere]&[tech_prefixes]} scanner detects [creatures*{1-2}]"
     - "Your {[crew.roles]} activates the {[weapon.enhancement]&[tech_suffixes]}"
+
+  # Markov Generation Examples - AI-style text from training data
+  markov_names:
+    - "Survivor codename: [name_prefixes.markov]"
+    - "Contact from [name_suffixes.markov] Station confirmed"
+    - "New arrival: {[name_prefixes.markov]&[name_suffixes.markov]}"
+    
+  markov_tech:
+    - "Discovered prototype: [tech_prefixes.markov] technology"
+    - "Analyzing [tech_suffixes.markov] components"
+    - "The [tech_prefixes.markov] system is operational"
+    
+  markov_discoveries:
+    - "Scanning reveals [materials.markov] deposits"
+    - "Generated [tech_prefixes.markov*3] variants for testing"
+    - "Mixed technology: {[tech_prefixes.markov]&[tech_suffixes.markov]}"

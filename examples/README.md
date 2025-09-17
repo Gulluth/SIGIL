@@ -36,7 +36,7 @@ node dist/examples/example.js
 
 ## What the Examples Demonstrate
 
-The example script (`example.ts`) showcases four key SIGIL features:
+The example script (`example.ts`) showcases five key SIGIL features:
 
 ### 1. Flat Structure (Horror Theme)
 - Simple YAML lists for straightforward content
@@ -56,6 +56,12 @@ The example script (`example.ts`) showcases four key SIGIL features:
 ### 4. AND Sigil (&) - Compound Word Generation
 - Uses the `&` sigil to create compound words and names
 - Demonstrates procedural name generation and tech terms
+- Uses `compound.yaml`, `scifi.yaml`, and `templates.yaml`
+
+### 5. Markov Generation - AI-Style Text Generation
+- Uses the `.markov` modifier for AI-style text generation
+- Creates new words based on training from existing lists
+- Combines with other SIGIL features like `&` sigil and repetition
 - Uses `compound.yaml`, `scifi.yaml`, and `templates.yaml`
 
 ## Example Data Files
@@ -87,6 +93,11 @@ AND Sigil Examples:
   1. Contact established with Nexcore
   2. Found a nanoscanner in the ruins
   3. Triple compound: activecybermatrix
+
+Markov Generation Examples:
+  1. Survivor codename: Drax (generated from training data)
+  2. Technology: CyberLink (Markov + AND sigil combination)
+  3. Multiple generation: Gral, Cyber, Nantum
 ```
 
 ## Customizing the Examples
