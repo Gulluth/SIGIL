@@ -1,0 +1,55 @@
+{
+  "name": "sigil",
+  "version": "0.1.0",
+  "description": "SIGIL (Sigil Is Generative Interpretive Language) - A minimalist YAML-based DSL for worldbuilding generators with automatic list merging and plugin architecture",
+  "main": "dist/src/index.js",
+  "types": "dist/src/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "example": "npm run build && node dist/examples/example.js",
+    "test": "npm run build && node --test dist/test/*.js",
+    "test:watch": "npm run build && node --test --watch dist/test/*.js",
+    "prepublishOnly": "npm run build"
+  },
+  "files": [
+    "dist/src/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "ttrpg",
+    "rpg",
+    "generator",
+    "osr",
+    "yaml",
+    "dsl",
+    "template",
+    "random",
+    "worldbuilding",
+    "dying-earth",
+    "markov"
+  ],
+  "author": "Gulluth <gulluth@proton.me>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Gulluth/sigil.git"
+  },
+  "homepage": "https://github.com/Gulluth/sigil#readme",
+  "bugs": {
+    "url": "https://github.com/Gulluth/sigil/issues"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^24.4.0",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "yaml": "^2.8.1"
+  }
+}

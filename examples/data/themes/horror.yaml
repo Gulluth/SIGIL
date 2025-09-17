@@ -1,0 +1,31 @@
+# Horror Theme
+# Dark and atmospheric elements for horror scenarios
+
+creatures:
+  - shambling corpse ^2
+  - shadow ^1.5
+  - possessed doll
+  - chittering thing ^0.5
+
+locations:
+  - abandoned asylum ^2
+  - cursed cemetery
+  - forgotten basement
+  - old carnival ^1.5
+
+atmosphere:
+  - blood-soaked
+  - eerily silent
+  - unnaturally cold
+  - thick with fog
+
+sounds:
+  - distant screaming
+  - scratching walls
+  - whispered prayers
+  - creaking floorboards
+
+colors:
+  - sickly green
+  - dried blood brown
+  - shadow black

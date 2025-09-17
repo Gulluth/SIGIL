@@ -1,0 +1,83 @@
+# Science Fiction Theme
+# Comprehensive sci-fi content combining weapons, space exploration, and technology
+
+# Weapons and technology from advanced civilizations
+weapon:
+  melee:
+    - disruption rod ^2
+    - gravitic knuckles
+    - monomolecular blade ^1.5
+    - synaptic lash
+  ranged:
+    - plasma pistol ^2
+    - neural disruptor
+    - phase rifle
+  enhancement:
+    - consciousness-linked
+    - quantum-entangled
+    - gene-locked
+    - time-dilated
+
+# Advanced materials and substances
+materials:
+  - crystalline
+  - nano-carbon
+  - bio-metal
+  - pure energy ^0.5
+
+# Technology-influenced colors
+colors:
+  - void-black
+  - plasma-blue
+  - neural-silver
+
+# Spacecraft and space travel
+ship:
+  type:
+    - frigate ^2
+    - destroyer
+    - scout vessel ^3
+    - dreadnought ^0.5
+  status:
+    - functioning
+    - damaged ^2
+    - derelict ^1.5
+    - ghost ship ^0.5
+  features:
+    - quantum drives
+    - bio-neural systems
+    - ancient AI core ^0.5
+    - crystalline hull
+
+# Celestial bodies and space phenomena
+stellar:
+  bodies:
+    - neutron star ^0.5
+    - gas giant ^2
+    - asteroid field ^3
+    - dead world
+  phenomena:
+    - spatial anomaly
+    - time dilation field
+    - psionic storm ^1.5
+    - dark matter cloud
+
+# Crew members and their capabilities
+crew:
+  roles:
+    - navigator
+    - engineer ^2
+    - xenobiologist
+    - quantum theorist ^0.5
+  status:
+    - experienced ^2
+    - rookie
+    - augmented ^1.5
+    - psychically gifted ^0.5
+
+# Environmental atmosphere
+atmosphere:
+  - vast emptiness
+  - claustrophobic corridors
+  - humming machinery
+  - artificial gravity

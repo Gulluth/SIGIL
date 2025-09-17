@@ -1,0 +1,29 @@
+# Fantasy/Medieval Theme
+# Weapons, materials, and elements from medieval and fantasy settings
+
+weapon:
+  melee:
+    - sword ^2
+    - axe
+    - dagger ^0.5
+    - mace
+  ranged:
+    - bow ^2
+    - crossbow
+    - sling ^0.5
+  enhancement:
+    - blood-drinking
+    - void-touched
+    - ancestor-blessed
+    - dream-forged
+
+materials:
+  - iron
+  - bone
+  - obsidian
+  - star-metal ^0.5
+
+colors:
+  - rust-red
+  - dying-sun amber
+  - bone-white

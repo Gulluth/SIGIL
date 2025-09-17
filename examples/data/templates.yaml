@@ -1,0 +1,42 @@
+# SIGIL Template Examples
+# Comprehensive templates demonstrating SIGIL syntax and features
+
+templates:
+  # Horror Theme Templates - flat structure examples
+  horror_encounter:
+    - "You hear [sounds] echoing from the [locations]"
+    - "A [atmosphere] [creatures] lurks in the shadows"
+    - "The [colors] walls are stained with {a} [atmosphere] residue"
+    
+  horror_discovery:
+    - "In the [locations], you find [creatures*{1-2}]"
+    - "The [atmosphere] air carries the scent of [creatures?]"
+    
+  # Science Fiction Templates - hierarchical structure examples  
+  space_mission:
+    - "The [ship.type] shows [ship.status] readings near {a} [stellar.bodies]"
+    - "Your [crew.roles] reports {a} [stellar.phenomena] ahead"
+    - "The [ship.status] [ship.type] encounters {a} [crew.status] [crew.roles]"
+    
+  space_exploration:
+    - "Scanning the [stellar.bodies] reveals [ship.features*{1-2}]"
+    - "The [atmosphere] bridge falls silent as [stellar.phenomena?] appears"
+
+  # Fantasy/Medieval Templates - weapon and material examples
+  weapon_discovery:
+    - "You discover {a} [materials] [weapon.melee] of [weapon.enhancement] make"
+    - "Beneath the rubble: {a} [weapon.enhancement] [weapon.ranged]"
+    - "The corpse clutches {a} [colors] [materials] [weapon.melee]"
+    
+  merchant_stock:
+    - "Available: {a} [weapon.enhancement] [weapon.melee] forged from [materials]"
+    - "The trader offers {a} [colors] [weapon.ranged] with [weapon.enhancement] modifications"
+    
+  loot_generator:
+    - "The vault contains [weapon.melee*{1-3}] of [weapon.enhancement] origin"
+    - "Among the ruins: {a} [weapon.enhancement?] [materials] artifact"
+
+  # Genre Blending Templates - combine fantasy and sci-fi elements
+  blended_item:
+    - "You find {a} [weapon.enhancement] [weapon.melee] forged from [materials]"
+    - "The artifact: {a} [colors] [materials] device with [weapon.enhancement] properties"
