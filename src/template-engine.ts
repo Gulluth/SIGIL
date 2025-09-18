@@ -1,15 +1,14 @@
 /**
  * SIGIL Template Engine
  * 
- * Parser-first template processing engine that handles all SIGIL syntax:
+ * AST-based template processing engine that handles all SIGIL syntax:
  * - [table] references with modifiers, weights, and repetition
  * - {this|that} OR logic and {this&that} AND logic
  * - {a} indefinite articles
  * - {1-6} number ranges
  * - Nested expressions with proper precedence
  * 
- * Architecture: Single-pass AST evaluation with structured parsing
- * for ease of maintainability and support for complex nested expressions.
+ * Architecture: Single-pass AST evaluation for maintainability and support for complex nested expressions.
  */
 
 import { SigilData } from './yaml-loader';
@@ -101,6 +100,21 @@ export function applyModifier(text: string, modifier: string): string {
     }
 }
 
+// Helper: apply a chain of modifiers left-to-right
+function applyModifiersChain(text: string, modifiers?: string[]): string {
+    if (!modifiers || modifiers.length === 0) return text;
+    let out = text;
+    for (const mod of modifiers) {
+        out = applyModifier(out, mod);
+    }
+    return out;
+}
+
+// Helper: ensure exhaustive node type handling
+function assertNever(x: never): never {
+    throw new Error(`Unhandled node type: ${JSON.stringify(x)}`);
+}
+
 /**
  * Generate indefinite article (a/an)
  */
@@ -129,7 +143,7 @@ export class SigilEngine {
     /**
      * Generate content from a SIGIL template string.
      * 
-     * Processes the template using parser-first architecture:
+    * Processes the template using AST-based architecture:
      * 1. Parse template into AST (Abstract Syntax Tree)
      * 2. Evaluate AST with proper operator precedence
      * 3. Apply post-processing (indefinite articles)
@@ -143,19 +157,12 @@ export class SigilEngine {
     }
 
     /**
-     * Phase 3: Complete parser-first template processing.
-     * 
-     * ARCHITECTURAL EVOLUTION:
-     * - Phase 1: Number ranges migrated to parser-first (51.8% faster)
-     * - Phase 2: Core sigils (AND/OR, tables) migrated to parser-first  
-     * - Phase 3: Complete migration - single-pass AST evaluation
-     * 
-     * This replaces the multi-pass regex approach with structured parsing:
-     * 1. Parse entire template into AST (mixed content support)
-     * 2. Evaluate AST bottom-up with proper operator precedence
-     * 3. Handle indefinite articles in post-processing pass
-     * 
-     * Benefits: Better precedence, cleaner code, foundation for advanced features
+    * Full AST-based template processing.
+    * 1. Parse entire template into AST (mixed content support)
+    * 2. Evaluate AST bottom-up with proper operator precedence
+    * 3. Handle indefinite articles in post-processing pass
+    *
+    * Benefits: Better precedence, cleaner code, foundation for advanced features
      */
     private processTemplate(template: string): string {
         if (this.depth >= (this.options.maxDepth || 10)) {
@@ -175,7 +182,7 @@ export class SigilEngine {
         this.depth++;
 
         try {
-            // Phase 3: Single-pass parser-first approach
+            // Single-pass AST-based approach
             const parsed = parseCompleteTemplate(template);
             let result = this.evaluateTemplateNode(parsed);
 
@@ -196,101 +203,7 @@ export class SigilEngine {
         }
     }
 
-    private resolveTableReference(content: string): string {
-        // Parse optional (?), exclusion (!), repetition (*), and modifiers
-        let tablePath = content;
-        let modifier = '';
-        let isOptional = false;
-        let exclusions: string[] = [];
-        let repetition = 1;
-
-        // Check for repetition: table*{1-3} or table*3
-        const repetitionMatch = tablePath.match(/^(.+?)\*(\{[\d-]+\}|\d+)$/);
-        if (repetitionMatch) {
-            tablePath = repetitionMatch[1];
-            const repValue = repetitionMatch[2];
-            if (repValue.startsWith('{') && repValue.endsWith('}')) {
-                // Range like {1-3}
-                const range = repValue.slice(1, -1);
-                const [min, max] = range.split('-').map(Number);
-                repetition = Math.floor(Math.random() * (max - min + 1)) + min;
-            } else {
-                repetition = parseInt(repValue);
-            }
-        }
-
-        // Check for optional: table?
-        if (tablePath.endsWith('?')) {
-            isOptional = true;
-            tablePath = tablePath.slice(0, -1);
-
-            // 50% chance to return empty for optional content
-            if (Math.random() < 0.5) {
-                return '';
-            }
-        }
-
-        // Check for exclusions: table!exclude1!exclude2
-        const exclusionMatch = tablePath.match(/^([^!]+)(!.+)?$/);
-        if (exclusionMatch && exclusionMatch[2]) {
-            tablePath = exclusionMatch[1];
-            exclusions = exclusionMatch[2].split('!').slice(1); // Remove first empty element
-        }
-
-        // Check for modifier: table.modifier
-        const parts = tablePath.split('.');
-        if (parts.length > 1) {
-            const lastPart = parts[parts.length - 1];
-            if (['capitalize', 'lowercase', 'pluralForm', 'markov'].includes(lastPart)) {
-                modifier = lastPart;
-                tablePath = parts.slice(0, -1).join('.');
-            }
-        }
-
-        // Handle Markov generation specially (needs access to full list)
-        if (modifier === 'markov') {
-            const list = getNestedValue(this.lists, tablePath);
-            if (Array.isArray(list)) {
-                // Filter out exclusions if any
-                let filteredList = list;
-                if (exclusions.length > 0) {
-                    filteredList = list.filter(item => {
-                        const cleanItem = item.replace(/ \^[\d.]+$/, ''); // Remove weight for comparison
-                        return !exclusions.some(exc => cleanItem.toLowerCase().includes(exc.toLowerCase()));
-                    });
-                }
-
-                if (filteredList.length === 0) {
-                    return `[${tablePath}]`; // No items after filtering
-                }
-
-                // Generate multiple Markov results if repetition is requested
-                const results: string[] = [];
-                for (let i = 0; i < repetition; i++) {
-                    const markovResult = generateMarkov(filteredList);
-                    results.push(markovResult);
-                }
-                return results.join(', ');
-            } else {
-                return `[${tablePath}]`; // Graceful degradation
-            }
-        }
-
-        // Generate the requested number of items
-        const results: string[] = [];
-        for (let i = 0; i < repetition; i++) {
-            const item = this.selectFromTable(tablePath, exclusions);
-            if (item) {
-                let processedItem = this.processTemplate(item); // Recursive processing
-                if (modifier) {
-                    processedItem = applyModifier(processedItem, modifier);
-                }
-                results.push(processedItem);
-            }
-        }
-
-        return results.join(', ');
-    }
+    // Legacy resolveTableReference removed: all table logic is now handled by the parser and AST evaluation.
 
     /**
      * Selects an item from a YAML table with graceful degradation.
@@ -346,6 +259,19 @@ export class SigilEngine {
         });
     }
 
+    // Centralized warning hook (easy to stub for tests or route elsewhere)
+    protected warn(message: string) {
+        if (this.options.debug) {
+            // eslint-disable-next-line no-console
+            console.warn(`[SIGIL] ${message}`);
+        }
+    }
+
+    // Isolate non-sigil textual post-processing (e.g., articles) here
+    private applyPostProcessors(text: string): string {
+        return this.processIndefiniteArticles(text);
+    }
+
     /**
      * Evaluates a parsed TemplateNode using bottom-up AST evaluation.
      * 
@@ -366,12 +292,11 @@ export class SigilEngine {
             case 'text':
                 return node.value;
 
-            case 'table':
+            case 'table': {
                 // Handle optional tables - 50% chance to return empty
                 if (node.isOptional && Math.random() < 0.5) {
                     return '';
                 }
-
                 // Determine repetition count
                 let repetitionCount: number;
                 if (typeof node.repetition === 'number') {
@@ -380,44 +305,23 @@ export class SigilEngine {
                     const { min, max } = node.repetition;
                     repetitionCount = Math.floor(Math.random() * (max - min + 1)) + min;
                 }
-
                 // Generate the requested number of items
                 const results: string[] = [];
                 for (let i = 0; i < repetitionCount; i++) {
                     const item = this.selectFromTable(node.tablePath, node.exclusions);
                     if (item) {
                         let processedItem = this.processTemplate(item); // Recursive processing
-                        // Support chained modifiers (array)
-                        if (Array.isArray(node.modifiers)) {
-                            for (const mod of node.modifiers) {
-                                processedItem = applyModifier(processedItem, mod);
-                            }
-                        }
+                        processedItem = applyModifiersChain(processedItem, node.modifiers);
                         results.push(processedItem);
                     }
                 }
-
                 return results.join(', ');
+            }
 
-            case 'and':
-                /**
-                 * OPERATOR PRECEDENCE DESIGN DECISION:
-                 * 
-                 * AND operations have higher precedence than individual operand optionality.
-                 * When using & (AND), the semantic intent is "this AND that" not "this AND maybe that".
-                 * 
-                 * Examples:
-                 * - {[a]&[b]?} should ALWAYS return both 'a' and 'b', never just 'a'
-                 * - {[weapon]&[armor]?} should return "sword plate mail", not sometimes just "sword"
-                 * 
-                 * Mathematical precedence rule: The & operator overrides the ? modifier on individual operands.
-                 * This ensures consistent, predictable behavior that matches user semantic expectations.
-                 * 
-                 * Implementation: Force isOptional: false for all table nodes within AND operations.
-                 */
+            case 'and': {
+                // AND operations override optionality on operands
                 const andResults = node.nodes.map(n => {
                     if (n.type === 'table') {
-                        // Create a copy of the table node with isOptional forced to false
                         const requiredTableNode = { ...n, isOptional: false };
                         return this.evaluateTemplateNode(requiredTableNode);
                     } else {
@@ -425,30 +329,32 @@ export class SigilEngine {
                     }
                 });
                 return andResults.join('');
+            }
 
-            case 'or':
+            case 'or': {
                 const orOptions = node.nodes;
                 const chosen = orOptions[Math.floor(Math.random() * orOptions.length)];
                 return this.evaluateTemplateNode(chosen);
+            }
 
             case 'group':
                 return this.evaluateTemplateNode(node.node);
 
-            case 'number_range':
+            case 'number_range': {
                 const result = Math.floor(Math.random() * (node.max - node.min + 1)) + node.min;
                 return result.toString();
+            }
 
             case 'indefinite_article':
-                // Return a placeholder that will be processed later with context
                 return '{a}';
 
-            case 'mixed':
-                // Evaluate all sub-nodes and concatenate results
+            case 'mixed': {
                 const mixedResults = node.nodes.map(n => this.evaluateTemplateNode(n));
                 return mixedResults.join('');
+            }
 
             default:
-                return '';
+                return assertNever(node as never);
         }
     }
 }

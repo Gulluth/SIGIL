@@ -57,8 +57,8 @@
 // 3. Apply OR: {bar|baz} -> "bar" or "baz"
 // 4. Apply AND: "foo, foo" & "bar" -> "foo, foobar"
 //
-// This eliminates regex-based string manipulation in favor of structured evaluation,
-// providing better handling of nested expressions and operator precedence.
+// This eliminates ad-hoc string manipulation in favor of Abstract Syntax Tree (AST) evaluation,
+// providing robust handling of nested expressions and operator precedence.
 
 export type TemplateNode =
     | { type: 'text', value: string }
@@ -168,7 +168,7 @@ function splitTopLevel(str: string, sep: string): string[] {
 /**
  * Phase 3: Parse a complete template that may contain mixed content.
  * 
- * This is the main function for Phase 3 full parser-first migration.
+ * This is the main function for full AST-based parsing and evaluation.
  * Unlike parseTemplateExpression which handles single expressions like "{a|b}",
  * this function can parse complete templates like:
  * "A {[weapons]&[materials]} {a} [creature] appears"
@@ -329,7 +329,7 @@ function parseSigilPattern(pattern: SigilPattern): TemplateNode {
 function parseTableReference(content: string, trailingModifiers: string): TemplateNode {
 
     // Known text modifiers that should be separated from table path (add more as needed)
-    const knownModifiers = ['capitalize', 'lowercase', 'pluralForm', 'markov', 'bold', 'italic'];
+    const knownModifiers = ['capitalize', 'lowercase', 'pluralForm', 'markov'];
 
     // Extract the core table reference (before any !, *, ?, ^)
     const coreMatch = content.match(/^([^!*?^]+?)(?:\^(\d+))?(?:!([^*?]+))?(?:\*(\{[\d-]+\}|\d+))?(\?)?$/);
