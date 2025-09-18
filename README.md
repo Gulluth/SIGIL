@@ -4,6 +4,8 @@
 
 A minimalist YAML-based DSL for creating powerful random generators. Perfect for game development, creative writing, worldbuilding, and any application that needs procedural content generation.
 
+
+
 ## What is SIGIL?
 
 SIGIL transforms simple YAML lists into sophisticated random generators with intelligent text processing, automatic content merging, and flexible template syntax. Designed for both browser and Node.js environments.
@@ -69,6 +71,13 @@ Sigils can be combined for complex behavior:
 - `[device*{2-4}?]` - Optionally generate 2-4 devices
 - `[material!radioactive.capitalize]` - Capitalized material, excluding radioactive
 - `{[condition]&[device]}` - Combine condition and device selections
+
+### Sigil Precedence and Evaluation Order
+
+- **AND (&) vs Optional (?)**: When AND and optional are combined (e.g., `{[a]&[b]?}`), AND takes precedence. All referenced elements are always included; optionality is ignored in this context.
+- **Weights and Repetition**: When using both weights and repetition (e.g., `[item^2*3]`), weights are applied first. Each repetition is an independent draw from the weighted pool.
+
+See the [Error Handling Guide](docs/error-handling.md) for more details and examples.
 
 ## Complete Syntax Reference
 
@@ -176,13 +185,23 @@ templates:
   description: "{a} [shape]"  # "an octagon" or "a square"
 ```
 
-**Capitalization Modifiers**:
+
+**Chained Modifiers (Left-to-Right order)**
+
+You can chain multiple modifiers using dot notation, e.g. `[table.capitalize.lowercase]`. Modifiers are applied in **left-to-right** order: the leftmost modifier is applied first, and the rightmost is applied last. This matches the order you see in the template and is the most intuitive for users.
+
+**Example:**
 ```yaml
 templates:
-  title: "[name.capitalize]"     # First letter uppercase
-  whisper: "[shout.lowercase]"   # All lowercase
-  plural: "[item.pluralForm]"    # Proper pluralization
+  fancy_name: "[name.capitalize.lowercase]"
+  # This will first capitalize the name, then lowercase the result.
 ```
+
+Supported modifiers:
+- `capitalize` — Capitalize the first letter
+- `lowercase` — Convert all letters to lowercase
+- `pluralForm` — Pluralize the word
+- `markov` — Generate text using Markov chains
 
 **Markov Generation** - AI-style text from training data:
 ```yaml
@@ -263,13 +282,15 @@ templates:
 
 ## Error Handling & Reliability
 
-SIGIL is designed for robust operation:
+SIGIL is designed with robustness in mind and includes comprehensive error handling:
 
-- **Graceful degradation**: Missing lists return placeholder text instead of crashing
-- **Circular reference detection**: Prevents infinite loops with recursion depth limits  
-- **Template validation**: Malformed syntax is detected and reported clearly
-- **Import error handling**: Clear messages when referenced files don't exist
-- **Debug mode**: Trace template resolution step-by-step for troubleshooting
+- **Defensive programming**: Attempts to return valid strings even with malformed syntax
+- **Graceful degradation**: Missing data typically returns placeholder text  
+- **Literal handling**: If a YAML value is quoted (single `'...'` or double `"..."`), it is always treated as a literal and never processed for sigils. Only unquoted YAML values are processed for sigils.
+- **Recursion limits**: Includes protection against circular references
+- **Unicode support**: Handles emojis, accented characters, and special symbols
+
+� **[Complete Error Handling Guide →](docs/error-handling.md)**
 
 ## Common Use Cases
 
@@ -281,38 +302,24 @@ SIGIL is designed for robust operation:
 
 ## API Reference
 
-### SigilEngine Class
+### Quick Reference
 
 ```javascript
-const engine = new SigilEngine(options);
+import { SigilEngine } from '@gulluth/sigil';
+
+const engine = new SigilEngine();
+await engine.loadData('./data/my-data.yaml');
+
+const result = engine.generate('my_template');
+console.log(result);
 ```
 
-**Options:**
-- `debug: boolean` - Enable step-by-step resolution tracing
-- `seed: string` - Set random seed for deterministic results
-- `maxDepth: number` - Recursion depth limit (default: 10)
-
-**Methods:**
+**Key Methods:**
 - `loadData(filePath)` - Load YAML data file
-- `loadDataFromString(yamlString)` - Load from YAML string  
 - `generate(templateName)` - Generate content from template
-- `setSeed(seed)` - Change random seed
-- `enableDebug(enable)` - Toggle debug mode
+- `enableDebug(enable)` - Toggle debug mode for troubleshooting
 
-## Browser vs Node.js
-
-**Browser Usage:**
-```javascript
-// Load data via fetch or bundle with your app
-const yamlData = await fetch('./data.yaml').then(r => r.text());
-engine.loadDataFromString(yamlData);
-```
-
-**Node.js Usage:**
-```javascript
-// Direct file loading
-await engine.loadData('./data/generators.yaml');
-```
+📖 **[Complete API Documentation →](docs/api-reference.md)**
 
 ## License
 

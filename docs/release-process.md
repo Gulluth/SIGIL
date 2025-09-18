@@ -1,6 +1,6 @@
-# SIGIL Release Commands Quick Reference
+# SIGIL Release Process
 
-## Complete Release Process
+## Complete Release Workflow
 
 ### Step 1: Version & Tag (Local)
 ```bash
@@ -28,23 +28,23 @@ git push --follow-tags origin main
 # 4. Description: Add release notes
 # 5. Click "Publish release"
 
-# This automatically triggers GitHub Actions to:
+# This triggers GitHub Actions to:
 # - Run all tests
 # - Build package  
 # - Publish to npm as @gulluth/sigil
 ```
 
-## What you need to know
+## Process Notes
 
-1. **Use conventional commits** (the format matters for automatic versioning):
+1. **Use conventional commits** (format affects automatic versioning):
    - `feat: add new feature` → minor version bump
    - `fix: repair bug` → patch version bump
    - `feat!: breaking change` → major version bump
 
-2. **Publishing only happens via GitHub** - no local npm publish
-   - Ensures tests always pass before publish
-   - Keeps npm credentials secure
-   - Provides complete audit trail
+2. **Publishing happens via GitHub** - no local npm publish
+   - Tests run before publish
+   - Credentials stay secure
+   - Complete audit trail
 
 3. **Two-step process**:
    - Local: Version bump and git tag
@@ -56,6 +56,6 @@ git push --follow-tags origin main
 npm install @gulluth/sigil
 ```
 
-## Full documentation
+## Development details
 
-See `CONTRIBUTING.md` for complete details on development workflow and commit formats.
+See `CONTRIBUTING.md` for complete development workflow and commit formats.

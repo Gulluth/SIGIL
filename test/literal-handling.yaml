@@ -1,0 +1,4 @@
+quoted: "{this|that}"
+single_quoted: '[fake_reference]'
+unquoted: {this|that}
+unquoted_table: [fake_reference]
