@@ -2,19 +2,11 @@
 
 **S**igil **I**s **G**enerative **I**nterpretive **L**anguage
 
-A minimalist YAML-based DSL for creating powerful random generators. Perfect for game development, creative writing, worldbuilding, and any application that needs procedural content generatio## Error Handling & Reliability
+A minimalist YAML-based DSL for creating powerful random generators. Perfect for game development, creative writing, worldbuilding, and any application that needs procedural content generation.
 
-SIGIL is designed with robustness in mind and includes comprehensive error handling:
 
-- **Defensive programming**: Attempts to return valid strings even with malformed syntax
-- **Graceful degradation**: Missing data typically returns placeholder text  
-- **Data separation**: YAML values with sigil characters are treated as literal text
-- **Recursion limits**: Includes protection against circular references
-- **Unicode support**: Handles emojis, accented characters, and special symbols
 
-**67+ automated tests** cover edge cases, unusual inputs, and various scenarios.
-
-📖 **[Complete Error Handling Guide →](docs/error-handling.md)**s SIGIL?
+## What is SIGIL?
 
 SIGIL transforms simple YAML lists into sophisticated random generators with intelligent text processing, automatic content merging, and flexible template syntax. Designed for both browser and Node.js environments.
 
@@ -193,13 +185,23 @@ templates:
   description: "{a} [shape]"  # "an octagon" or "a square"
 ```
 
-**Capitalization Modifiers**:
+
+**Chained Modifiers (Left-to-Right order)**
+
+You can chain multiple modifiers using dot notation, e.g. `[table.capitalize.lowercase]`. Modifiers are applied in **left-to-right** order: the leftmost modifier is applied first, and the rightmost is applied last. This matches the order you see in the template and is the most intuitive for users.
+
+**Example:**
 ```yaml
 templates:
-  title: "[name.capitalize]"     # First letter uppercase
-  whisper: "[shout.lowercase]"   # All lowercase
-  plural: "[item.pluralForm]"    # Proper pluralization
+  fancy_name: "[name.capitalize.lowercase]"
+  # This will first capitalize the name, then lowercase the result.
 ```
+
+Supported modifiers:
+- `capitalize` — Capitalize the first letter
+- `lowercase` — Convert all letters to lowercase
+- `pluralForm` — Pluralize the word
+- `markov` — Generate text using Markov chains
 
 **Markov Generation** - AI-style text from training data:
 ```yaml
@@ -280,15 +282,13 @@ templates:
 
 ## Error Handling & Reliability
 
-SIGIL is designed for production-ready robustness with comprehensive error handling and graceful degradation:
+SIGIL is designed with robustness in mind and includes comprehensive error handling:
 
-- **Never crashes**: All inputs return valid strings, even with malformed syntax
-- **Graceful degradation**: Missing data returns meaningful placeholders  
-- **Data integrity**: YAML values with sigil characters are treated as literal text
-- **Memory safety**: Circular reference detection prevents infinite loops
-- **Unicode support**: Full support for emojis, accented characters, and special symbols
-
-**67+ automated tests** validate reliability across edge cases, fuzzing scenarios, and production workloads.
+- **Defensive programming**: Attempts to return valid strings even with malformed syntax
+- **Graceful degradation**: Missing data typically returns placeholder text  
+- **Literal handling**: If a YAML value is quoted (single `'...'` or double `"..."`), it is always treated as a literal and never processed for sigils. Only unquoted YAML values are processed for sigils.
+- **Recursion limits**: Includes protection against circular references
+- **Unicode support**: Handles emojis, accented characters, and special symbols
 
 � **[Complete Error Handling Guide →](docs/error-handling.md)**
 

@@ -186,8 +186,10 @@ describe('SIGIL Template Engine - Inline and Cross-Sigil', () => {
         it('should handle nested cross-sigil combinations (AND takes precedence over optional)', () => {
             const testEngine = new SigilEngine({ a: ['foo'], b: ['bar'], c: ['baz'] });
             const result = testEngine.generate('{[a*2]&{[b]|[c?]}}');
-            assert.ok(result.startsWith('foofoo'));
-            assert.ok(result.endsWith('bar') || result.endsWith('baz') || result === 'foofoo');
+            // [a*2] should produce 'foo, foo', and & should concatenate with the right side
+            assert.ok(result.startsWith('foo, foo'));
+            // Should end with bar, baz, or just 'foo, foo' if optional is empty
+            assert.ok(result.endsWith('bar') || result.endsWith('baz') || result === 'foo, foo');
         });
         it('should handle weight with repetition (weights applied before repetition)', () => {
             const testEngine = new SigilEngine({ item: ['a^2', 'b', 'c'] });

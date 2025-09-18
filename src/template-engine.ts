@@ -1,10 +1,20 @@
 /**
  * SIGIL Template Engine
- * Handles all SIGIL syntax: [table], {a}, {this|that}, weights, modifiers, etc.
+ * 
+ * Parser-first template processing engine that handles all SIGIL syntax:
+ * - [table] references with modifiers, weights, and repetition
+ * - {this|that} OR logic and {this&that} AND logic
+ * - {a} indefinite articles
+ * - {1-6} number ranges
+ * - Nested expressions with proper precedence
+ * 
+ * Architecture: Single-pass AST evaluation with structured parsing
+ * for ease of maintainability and support for complex nested expressions.
  */
 
 import { SigilData } from './yaml-loader';
 import { generateMarkov } from './markov-generator';
+import { parseCompleteTemplate, TemplateNode } from './template-parser';
 
 export interface TemplateOptions {
     maxDepth?: number;
@@ -117,52 +127,73 @@ export class SigilEngine {
     }
 
     /**
-     * Process a template string with full SIGIL syntax
+     * Generate content from a SIGIL template string.
+     * 
+     * Processes the template using parser-first architecture:
+     * 1. Parse template into AST (Abstract Syntax Tree)
+     * 2. Evaluate AST with proper operator precedence
+     * 3. Apply post-processing (indefinite articles)
+     * 
+     * @param template SIGIL template string to process
+     * @returns Generated content string
      */
     public generate(template: string): string {
         this.depth = 0;
         return this.processTemplate(template);
     }
 
+    /**
+     * Phase 3: Complete parser-first template processing.
+     * 
+     * ARCHITECTURAL EVOLUTION:
+     * - Phase 1: Number ranges migrated to parser-first (51.8% faster)
+     * - Phase 2: Core sigils (AND/OR, tables) migrated to parser-first  
+     * - Phase 3: Complete migration - single-pass AST evaluation
+     * 
+     * This replaces the multi-pass regex approach with structured parsing:
+     * 1. Parse entire template into AST (mixed content support)
+     * 2. Evaluate AST bottom-up with proper operator precedence
+     * 3. Handle indefinite articles in post-processing pass
+     * 
+     * Benefits: Better precedence, cleaner code, foundation for advanced features
+     */
     private processTemplate(template: string): string {
         if (this.depth >= (this.options.maxDepth || 10)) {
             return template; // Prevent infinite recursion
         }
 
+        // ARCHITECTURAL DECISION:
+        // If the template string is quoted (single or double), treat as literal and do not process for sigils.
+        if (
+            (template.startsWith('"') && template.endsWith('"')) ||
+            (template.startsWith("'") && template.endsWith("'"))
+        ) {
+            // Remove the quotes and return as literal
+            return template.slice(1, -1);
+        }
+
         this.depth++;
 
-        let result = template;
+        try {
+            // Phase 3: Single-pass parser-first approach
+            const parsed = parseCompleteTemplate(template);
+            let result = this.evaluateTemplateNode(parsed);
 
-        // Process [table] references (including modifiers, optional, exclusion, repetition)
-        result = this.processTableReferences(result);
+            // Post-processing: Handle indefinite articles with context
+            // This needs to be done after AST evaluation to have proper word context
+            result = this.processIndefiniteArticles(result);
 
-        // Process {this|that} inline randomization and {option&option} combinations
-        result = this.processInlineRandomization(result);
+            this.depth--;
+            return result;
 
-        // Process {1-10} number ranges
-        result = this.processNumberRanges(result);
-
-        // Process {a} indefinite articles (after compound words are generated)
-        result = this.processIndefiniteArticles(result);
-
-        this.depth--;
-        return result;
-    }
-
-    private processTableReferences(text: string): string {
-        // Pattern: [table.subtable.modifier?!*{count}]
-        const tablePattern = /\[([^\]]+)\]/g;
-
-        return text.replace(tablePattern, (match, content) => {
-            try {
-                return this.resolveTableReference(content);
-            } catch (error) {
-                if (this.options.debug) {
-                    console.error(`Error resolving ${match}:`, error);
-                }
-                return match; // Return original on error
+        } catch (error) {
+            // Fallback to original template if parsing fails completely
+            if (this.options.debug) {
+                console.error(`Template parsing failed for: "${template}"`, error);
             }
-        });
+            this.depth--;
+            return template;
+        }
     }
 
     private resolveTableReference(content: string): string {
@@ -261,6 +292,26 @@ export class SigilEngine {
         return results.join(', ');
     }
 
+    /**
+     * Selects an item from a YAML table with graceful degradation.
+     * 
+     * GRACEFUL DEGRADATION BEHAVIOR:
+     * - Missing tables: Returns empty string ("") + console warning
+     * - Empty tables after filtering: Returns empty string ("")
+     * - Invalid table data: Returns empty string ("") + console warning
+     * 
+     * This ensures that reference sigils [missing_table] degrade gracefully
+     * rather than crashing or returning placeholder text like "[missing_table]".
+     * 
+     * Examples:
+     * - [weapons] where weapons exists → random weapon name
+     * - [missing] where missing doesn't exist → "" (empty string)
+     * - [weapons!*] where all items filtered → "" (empty string)
+     * 
+     * @param tablePath Dot-notation path to table in YAML data
+     * @param exclusions Array of strings to exclude from selection
+     * @returns Selected item string or empty string if table missing/empty
+     */
     private selectFromTable(tablePath: string, exclusions: string[] = []): string {
         const list = getNestedValue(this.lists, tablePath);
 
@@ -268,7 +319,7 @@ export class SigilEngine {
             if (this.options.debug) {
                 console.warn(`Table not found or not array: ${tablePath}`);
             }
-            return `[${tablePath}]`; // Graceful degradation
+            return ''; // Graceful degradation - return empty string
         }
 
         // Filter out exclusions
@@ -281,7 +332,7 @@ export class SigilEngine {
         }
 
         if (filteredList.length === 0) {
-            return `[${tablePath}]`; // No items after filtering
+            return ''; // No items after filtering - return empty string
         }
 
         const weightedItems = parseWeightedList(filteredList);
@@ -295,68 +346,109 @@ export class SigilEngine {
         });
     }
 
-    private processInlineRandomization(text: string): string {
-        // Pattern: {option1|option2|option3} OR {option1&option2&option3}
-        return text.replace(/\{([^}]+)\}/g, (match, content) => {
-            if (content.includes('|')) {
-                // OR logic: choose one option
-                const options = content.split('|').map((opt: string) => opt.trim());
-                return options[Math.floor(Math.random() * options.length)];
-            } else if (content.includes('&')) {
-                // AND logic: combine all options
-                const options = content.split('&').map((opt: string) => opt.trim());
+    /**
+     * Evaluates a parsed TemplateNode using bottom-up AST evaluation.
+     * 
+     * This implements the core of our "algebraic" template evaluation approach:
+     * - Processes leaf nodes (tables, text) first
+     * - Applies operators (&, |) with proper precedence  
+     * - Recursively evaluates nested structures
+     * 
+     * Operator Precedence Rules:
+     * - AND (&) takes precedence over optional (?) - strips trailing ?
+     * - Evaluation proceeds from innermost to outermost expressions
+     * 
+     * @param node TemplateNode to evaluate (from parseCompleteTemplate)
+     * @returns Fully resolved string result
+     */
+    private evaluateTemplateNode(node: TemplateNode): string {
+        switch (node.type) {
+            case 'text':
+                return node.value;
+
+            case 'table':
+                // Handle optional tables - 50% chance to return empty
+                if (node.isOptional && Math.random() < 0.5) {
+                    return '';
+                }
+
+                // Determine repetition count
+                let repetitionCount: number;
+                if (typeof node.repetition === 'number') {
+                    repetitionCount = node.repetition;
+                } else {
+                    const { min, max } = node.repetition;
+                    repetitionCount = Math.floor(Math.random() * (max - min + 1)) + min;
+                }
+
+                // Generate the requested number of items
                 const results: string[] = [];
-
-                for (const option of options) {
-                    // Check if this is a table reference (possibly with sigils)
-                    let tableRef = option;
-                    let isTableReference = false;
-
-                    // Handle table references like [table], [table]?, [table]!, etc.
-                    const tableMatch = option.match(/^\[([^\]]+)\](.*)$/);
-                    if (tableMatch) {
-                        isTableReference = true;
-                        tableRef = tableMatch[1]; // The table name
-                        const sigils = tableMatch[2]; // Any sigils after the ]
-
-                        // For AND combinations, strip optional (?) since AND takes precedence
-                        if (sigils.includes('?')) {
-                            // Remove the ? but keep other sigils
-                            tableRef = tableRef + sigils.replace('?', '');
-                        } else {
-                            tableRef = tableRef + sigils;
+                for (let i = 0; i < repetitionCount; i++) {
+                    const item = this.selectFromTable(node.tablePath, node.exclusions);
+                    if (item) {
+                        let processedItem = this.processTemplate(item); // Recursive processing
+                        // Support chained modifiers (array)
+                        if (Array.isArray(node.modifiers)) {
+                            for (const mod of node.modifiers) {
+                                processedItem = applyModifier(processedItem, mod);
+                            }
                         }
-                    } else {
-                        // For AND combinations, strip trailing ? from literal strings too
-                        // since AND takes precedence over optional
-                        if (option.endsWith('?')) {
-                            tableRef = option.slice(0, -1);
-                        }
-                    }
-
-                    if (isTableReference) {
-                        const tableResult = this.resolveTableReference(tableRef);
-                        results.push(tableResult);
-                    } else {
-                        // This is a literal string (possibly with ? removed)
-                        results.push(tableRef);
+                        results.push(processedItem);
                     }
                 }
 
-                // Combine results without spaces for compound words
-                return results.join('');
-            }
-            return match; // Not a recognized pattern
-        });
-    }
+                return results.join(', ');
 
-    private processNumberRanges(text: string): string {
-        // Pattern: {1-10} or {5-20}
-        return text.replace(/\{(\d+)-(\d+)\}/g, (match, min, max) => {
-            const minNum = parseInt(min);
-            const maxNum = parseInt(max);
-            const result = Math.floor(Math.random() * (maxNum - minNum + 1)) + minNum;
-            return result.toString();
-        });
+            case 'and':
+                /**
+                 * OPERATOR PRECEDENCE DESIGN DECISION:
+                 * 
+                 * AND operations have higher precedence than individual operand optionality.
+                 * When using & (AND), the semantic intent is "this AND that" not "this AND maybe that".
+                 * 
+                 * Examples:
+                 * - {[a]&[b]?} should ALWAYS return both 'a' and 'b', never just 'a'
+                 * - {[weapon]&[armor]?} should return "sword plate mail", not sometimes just "sword"
+                 * 
+                 * Mathematical precedence rule: The & operator overrides the ? modifier on individual operands.
+                 * This ensures consistent, predictable behavior that matches user semantic expectations.
+                 * 
+                 * Implementation: Force isOptional: false for all table nodes within AND operations.
+                 */
+                const andResults = node.nodes.map(n => {
+                    if (n.type === 'table') {
+                        // Create a copy of the table node with isOptional forced to false
+                        const requiredTableNode = { ...n, isOptional: false };
+                        return this.evaluateTemplateNode(requiredTableNode);
+                    } else {
+                        return this.evaluateTemplateNode(n);
+                    }
+                });
+                return andResults.join('');
+
+            case 'or':
+                const orOptions = node.nodes;
+                const chosen = orOptions[Math.floor(Math.random() * orOptions.length)];
+                return this.evaluateTemplateNode(chosen);
+
+            case 'group':
+                return this.evaluateTemplateNode(node.node);
+
+            case 'number_range':
+                const result = Math.floor(Math.random() * (node.max - node.min + 1)) + node.min;
+                return result.toString();
+
+            case 'indefinite_article':
+                // Return a placeholder that will be processed later with context
+                return '{a}';
+
+            case 'mixed':
+                // Evaluate all sub-nodes and concatenate results
+                const mixedResults = node.nodes.map(n => this.evaluateTemplateNode(n));
+                return mixedResults.join('');
+
+            default:
+                return '';
+        }
     }
 }

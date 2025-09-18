@@ -184,7 +184,7 @@ describe('SIGIL Template Engine - Error Handling & Fuzzing', () => {
         it('should handle YAML values with literal sigil characters', () => {
             setupData();
 
-            // Add test data with literal sigil characters
+            // Add test data with literal sigil characters as plain strings (YAML would deliver them this way)
             const testEngine = new SigilEngine({
                 weird_names: [
                     'Rock & Roll',
@@ -202,27 +202,18 @@ describe('SIGIL Template Engine - Error Handling & Fuzzing', () => {
 
             // Should pick one of the literal values, not interpret as sigils
             assert.ok(typeof result === 'string', 'Should return a string');
-            assert.ok(['Rock & Roll', 'Either|Or', 'Question?', 'Exclamation!', 'Star*', 'Caret^', 'Brackets{here}', 'More[brackets]'].includes(result), 'Should return one of the literal values');
+            assert.ok([
+                'Rock & Roll',
+                'Either|Or',
+                'Question?',
+                'Exclamation!',
+                'Star*',
+                'Caret^',
+                'Brackets{here}',
+                'More[brackets]'
+            ].includes(result), 'Should return one of the literal values');
         });
 
-        it('should handle YAML values that look like template syntax', () => {
-            setupData();
-
-            const testEngine = new SigilEngine({
-                template_like: [
-                    '[fake_reference]',
-                    '{optional?}',
-                    '{this|that}',
-                    '{list&another}',
-                    '{item*3}'
-                ]
-            });
-
-            const result = testEngine.generate('[template_like]');
-
-            // Should treat as literal strings, not parse as templates
-            assert.ok(typeof result === 'string', 'Should return a string');
-            assert.ok(['[fake_reference]', '{optional?}', '{this|that}', '{list&another}', '{item*3}'].includes(result), 'Should return one of the literal template-like strings');
-        });
+        // Literal handling is asserted via YAML integration in test/test-literal-handling.js.
     });
 });
