@@ -1,6 +1,6 @@
 # Error Handling & Robustness
 
-SIGIL is designed with robustness in mind and includes comprehensive error handling. Our test suite (67+ tests including various edge cases) exercises these behaviors.
+SIGIL is designed with robustness in mind and includes comprehensive error handling. Our test suite exercises these behaviors.
 
 ## Design Principles
 
@@ -149,16 +149,10 @@ const engine = new SigilEngine({
 
 ## Test Coverage
 
-**Current test scenarios** (67+ automated tests covering):
+**Current test scenarios**:
 - ✅ Basic functionality across all sigils
 - ✅ Complex cross-sigil combinations  
 - ✅ Various edge cases and unusual inputs
 - ✅ Unicode and international character handling
 - ✅ Recursion limits and circular reference detection
 - ✅ Large data sets and performance scenarios
-
-## Sigil Precedence and Evaluation Order
-
-- **AND (&) takes precedence over Optional (?)**: In expressions like `{[a]&[b?]}`, the AND sigil overrides optionality. All referenced elements are always included; optional is ignored.
-- **Debugging**: When debug mode is enabled, the engine will log: `[SIGIL DEBUG] Optional (?) ignored: AND (&) takes precedence in expression ...`
-- **Weights and Repetition**: In `[item^2*3]`, weights are applied before repetition. Each repetition is an independent draw from the weighted pool.
