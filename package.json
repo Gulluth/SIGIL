@@ -1,6 +1,6 @@
 {
   "name": "@gulluth/sigil",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "SIGIL (Sigil Is Generative Interpretive Language) - A minimalist YAML-based DSL for worldbuilding generators with automatic list merging and plugin architecture",
   "main": "dist/src/index.js",
   "types": "dist/src/index.d.ts",
