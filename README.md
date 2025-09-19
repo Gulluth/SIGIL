@@ -305,21 +305,27 @@ SIGIL is designed with robustness in mind and includes comprehensive error handl
 ### Quick Reference
 
 ```javascript
-import { SigilEngine } from '@gulluth/sigil';
+import { SigilEngine, loadSigilData } from '@gulluth/sigil';
 
+// Single file
 const engine = new SigilEngine();
 await engine.loadData('./data/my-data.yaml');
+
+// Multi-file (Node.js)
+const data = loadSigilData(['./core.yaml', './expansion.yaml']);
+const engine = new SigilEngine(data.lists);
 
 const result = engine.generate('my_template');
 console.log(result);
 ```
 
 **Key Methods:**
-- `loadData(filePath)` - Load YAML data file
+- `loadData(filePath)` - Load single YAML file (Node.js)
+- `loadSigilData(filePaths[])` - Load and merge multiple files (Node.js)  
 - `generate(templateName)` - Generate content from template
 - `enableDebug(enable)` - Toggle debug mode for troubleshooting
 
-📖 **[Complete API Documentation →](docs/api-reference.md)**
+📖 **[Complete API Documentation →](docs/api-reference.md)** (includes browser/Vite examples)
 
 ## License
 

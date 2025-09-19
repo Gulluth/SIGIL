@@ -12,6 +12,5 @@ export type { SigilData } from './yaml-loader';
 export { SigilMarkov, generateMarkov } from './markov-generator';
 export type { MarkovOptions, MarkovChain } from './markov-generator';
 
-// Version info - imported from package.json to stay in sync
-import { version } from '../package.json';
-export const VERSION = version;
+// Version info - injected during build from package.json
+export const VERSION = '__SIGIL_VERSION__';
