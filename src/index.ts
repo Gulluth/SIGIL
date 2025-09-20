@@ -5,8 +5,13 @@
 
 // Export main engine and utilities
 export { SigilEngine } from './template-engine';
-export { loadSigilData, loadSingleFile } from './yaml-loader';
 export type { SigilData } from './yaml-loader';
+
+// Browser-friendly YAML parsing functions
+export { parseYamlContent, createSigilData, createSingleSigilData, mergeLists, extractTemplates } from './yaml-loader';
+
+// Node.js file loading functions (will throw runtime errors in browser)
+export { loadSigilData, loadSingleFile } from './yaml-loader';
 
 // Export Markov generation utilities
 export { SigilMarkov, generateMarkov } from './markov-generator';

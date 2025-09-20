@@ -1,6 +1,26 @@
 import * as YAML from 'yaml';
-import * as fs from 'fs';
-import * as path from 'path';
+
+// Conditional imports for Node.js environment only
+let fs: any = null;
+let path: any = null;
+
+// Check if we're in a Node.js environment and load modules
+const isNode = typeof process !== 'undefined' && process.versions && process.versions.node;
+
+function ensureNodeModules() {
+    if (!isNode) {
+        throw new Error('File system operations are only available in Node.js environment');
+    }
+
+    if (!fs || !path) {
+        try {
+            fs = require('fs');
+            path = require('path');
+        } catch (error) {
+            throw new Error('fs and path modules are required for file operations but not available');
+        }
+    }
+}
 
 /**
  * YAML Data Loader for SIGIL
@@ -24,6 +44,8 @@ export interface LoadedData {
  * Load a single YAML file and parse its contents
  */
 export function loadYamlFile(filePath: string): SigilData {
+    ensureNodeModules();
+
     try {
         const fileContent = fs.readFileSync(filePath, 'utf-8');
         const parsed = YAML.parse(fileContent);
@@ -107,4 +129,40 @@ export function loadSigilData(filePaths: string[]): LoadedData {
  */
 export function loadSingleFile(filePath: string): LoadedData {
     return loadSigilData([filePath]);
+}
+
+/**
+ * Parse YAML content string (browser-friendly)
+ */
+export function parseYamlContent(yamlContent: string): SigilData {
+    try {
+        const parsed = YAML.parse(yamlContent);
+        return parsed || {};
+    } catch (error) {
+        throw new Error(`Failed to parse YAML content: ${error instanceof Error ? error.message : error}`);
+    }
+}
+
+/**
+ * Create SIGIL data from multiple YAML content strings (browser-friendly)
+ */
+export function createSigilData(yamlContents: string[]): LoadedData {
+    const dataObjects: SigilData[] = [];
+
+    for (const content of yamlContents) {
+        const data = parseYamlContent(content);
+        dataObjects.push(data);
+    }
+
+    const lists = mergeLists(dataObjects);
+    const templates = extractTemplates(dataObjects);
+
+    return { lists, templates };
+}
+
+/**
+ * Create SIGIL data from a single YAML content string (browser-friendly)
+ */
+export function createSingleSigilData(yamlContent: string): LoadedData {
+    return createSigilData([yamlContent]);
 }
