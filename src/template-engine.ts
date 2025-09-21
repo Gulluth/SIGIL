@@ -26,6 +26,13 @@ export interface WeightedItem {
     weight: number;
 }
 
+export type TokenDescriptor = {
+    type: 'table' | 'inline';
+    raw: string;
+    tablePath?: string;
+    modifiers?: string[];
+};
+
 /**
  * Parse weighted items from a list
  * "sword ^2" -> { value: "sword", weight: 2 }
@@ -169,16 +176,6 @@ export class SigilEngine {
             return template; // Prevent infinite recursion
         }
 
-        // ARCHITECTURAL DECISION:
-        // If the template string is quoted (single or double), treat as literal and do not process for sigils.
-        if (
-            (template.startsWith('"') && template.endsWith('"')) ||
-            (template.startsWith("'") && template.endsWith("'"))
-        ) {
-            // Remove the quotes and return as literal
-            return template.slice(1, -1);
-        }
-
         this.depth++;
 
         try {
@@ -201,6 +198,109 @@ export class SigilEngine {
             this.depth--;
             return template;
         }
+    }
+
+    /**
+     * Token descriptor returned by `parseTokens`.
+     */
+
+
+    /**
+     * Parse tokens from a template string and return simple descriptors.
+     * This is intended for host applications (like Vaultron) to inspect
+     * tokens and optionally operate on them before rendering.
+     */
+    public parseTokens(template: string): Array<{ type: 'table' | 'inline'; raw: string; tablePath?: string; modifiers?: string[] }> {
+        const descriptors: Array<{ type: 'table' | 'inline'; raw: string; tablePath?: string; modifiers?: string[] }> = [];
+
+        // Use the parser to build an AST and walk it to collect table nodes
+        try {
+            const ast = parseCompleteTemplate(template);
+
+            const walk = (node: TemplateNode) => {
+                switch (node.type) {
+                    case 'table':
+                        descriptors.push({ type: 'table', raw: node.tablePath, tablePath: node.tablePath, modifiers: node.modifiers });
+                        break;
+                    case 'mixed':
+                    case 'and':
+                    case 'or':
+                        for (const c of (node as any).nodes || []) walk(c);
+                        break;
+                    case 'group':
+                        walk((node as any).node);
+                        break;
+                    // text, number_range, indefinite_article -> ignore for token extraction
+                    default:
+                        break;
+                }
+            };
+
+            walk(ast);
+        } catch (err) {
+            // Fallback: perform a simple scan for top-level bracketed table tokens
+            const re = /\[([^\]]+)\]/g;
+            let m: RegExpExecArray | null;
+            while ((m = re.exec(template)) !== null) {
+                const content = m[1];
+                // Attempt to split off dot-suffixed modifiers (known list)
+                const knownModifiers = ['capitalize', 'lowercase', 'pluralForm', 'markov'];
+                const parts = content.split('.');
+                const mods: string[] = [];
+                while (parts.length > 1 && knownModifiers.includes(parts[parts.length - 1])) {
+                    mods.unshift(parts.pop()!);
+                }
+                const tablePath = parts.join('.');
+                descriptors.push({ type: 'table', raw: content, tablePath, modifiers: mods.length ? mods : undefined });
+            }
+        }
+
+        return descriptors;
+    }
+
+    /**
+     * Resolve the raw value at a dotted path (no selection or modifier application).
+     * Returns whatever is stored in the data (array/object/primitive) or undefined.
+     */
+    public resolveRaw(pathOrDescriptor: string | { tablePath?: string }): any {
+        const path = typeof pathOrDescriptor === 'string' ? pathOrDescriptor : (pathOrDescriptor.tablePath || '');
+        if (!path) return undefined;
+        return getNestedValue(this.lists, path);
+    }
+
+    /**
+     * Resolve a selected item for the given table path (per normal selection rules).
+     * If the resolved value is an array, a single item will be selected from it.
+     * Otherwise the raw value is returned.
+     */
+    public resolveSelected(pathOrDescriptor: string | { tablePath?: string }): any {
+        const path = typeof pathOrDescriptor === 'string' ? pathOrDescriptor : (pathOrDescriptor.tablePath || '');
+        if (!path) return undefined;
+        const val = getNestedValue(this.lists, path);
+        if (Array.isArray(val)) {
+            const weighted = parseWeightedList(val.map(i => typeof i === 'string' ? i : String(i)));
+            return selectWeighted(weighted);
+        }
+        return val;
+    }
+
+    /**
+     * If the template is exactly a single table sigil (no other text), return
+     * the raw/selected value directly. Otherwise behave like `generate()`.
+     */
+    public renderRawIfSingleToken(template: string): any {
+        try {
+            const ast = parseCompleteTemplate(template);
+            if (ast.type === 'table') {
+                return this.resolveSelected(ast.tablePath);
+            }
+            if (ast.type === 'mixed' && (ast.nodes || []).length === 1 && ast.nodes[0].type === 'table') {
+                return this.resolveSelected((ast.nodes[0] as any).tablePath);
+            }
+        } catch (err) {
+            // ignore and fallback to normal rendering
+        }
+        return this.generate(template);
     }
 
     // Legacy resolveTableReference removed: all table logic is now handled by the parser and AST evaluation.

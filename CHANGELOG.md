@@ -1,5 +1,20 @@
 # Changelog
 
+All notable changes to this project will be documented in this file.
+
+## Unreleased
+
+### Changed
+- Process quoted YAML scalars as templates instead of treating them as literal strings. This affects any YAML values that relied on quoting to prevent sigil expansion.
+
+### Added
+- New host-facing APIs on `SigilEngine`: `parseTokens`, `resolveRaw`, `resolveSelected`, and `renderRawIfSingleToken` for token inspection and raw lookups.
+- Browser-friendly YAML helpers: `parseYamlContent`, `createSigilData`, `createSingleSigilData` to support bundlers (Vite/Webpack) without importing `fs`/`path`.
+
+### Notes
+- Hosts that previously used quoting to avoid expansion should migrate by escaping sigil characters or by using the new raw lookup APIs when literal data is required.
+# Changelog
+
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
 ### [0.1.8](https://github.com/Gulluth/sigil/compare/v0.1.7...v0.1.8) (2025-09-20)
