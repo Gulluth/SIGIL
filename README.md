@@ -1,3 +1,9 @@
+# EXPERIMENTAL SOFTWARE
+
+SIGIL is experimental software, and should be treated as such. I am frequently making breaking API changes to tune SIGIL to the way I am expecting it to operate.
+
+You have been warned!
+
 # SIGIL
 
 **S**igil **I**s **G**enerative **I**nterpretive **L**anguage
@@ -285,8 +291,7 @@ templates:
 SIGIL is designed with robustness in mind and includes comprehensive error handling:
 
 - **Defensive programming**: Attempts to return valid strings even with malformed syntax
-- **Graceful degradation**: Missing data typically returns placeholder text  
-- **Literal handling**: If a YAML value is quoted (single `'...'` or double `"..."`), it is always treated as a literal and never processed for sigils. Only unquoted YAML values are processed for sigils.
+- **Graceful degradation**: Missing data typically returns placeholder text
 - **Recursion limits**: Includes protection against circular references
 - **Unicode support**: Handles emojis, accented characters, and special symbols
 

@@ -37,6 +37,47 @@ const engine = new SigilEngine(JSON.parse(yamlData));
 - `validateTemplate(template)` - Check template syntax without generating
 - `getStats()` - Get generation statistics and performance metrics
 
+### Token & Raw Lookup APIs
+
+These helper methods allow hosts to inspect templates and retrieve raw data without triggering full text rendering.
+
+- `parseTokens(templateString: string): TokenDescriptor[]`
+  - Returns an array of `TokenDescriptor` objects describing each table token found in `templateString`.
+  - `TokenDescriptor` fields:
+    - `path: string` — dotted table path (e.g., `location.region`)
+    - `modifiers: string[]` — list of modifier names in left-to-right order
+    - `span: {start: number, end: number}` — character offsets in the original template string
+
+- `resolveRaw(pathOrDescriptor)`
+  - Given a dotted path string or a `TokenDescriptor`, returns the raw stored value from the engine data (array or primitive).
+
+- `resolveSelected(pathOrDescriptor)`
+  - If the raw value is an array/list, returns a single element selected according to SIGIL selection rules (weights, exclusions, etc.). Otherwise returns the primitive value.
+
+- `renderRawIfSingleToken(templateString: string)`
+  - If `templateString` consists of exactly one table token (and nothing else), returns the raw/selected value directly (non-string values preserved). If the template contains multiple tokens or additional text, behaves like `generate()` and returns a rendered string.
+
+Example: Inspect tokens and show choices in a UI
+
+```ts
+const engine = new SigilEngine(parsedData);
+const template = '[enemy_types] and [loot]';
+const tokens = engine.parseTokens(template);
+
+// tokens -> [{path:'enemy_types', modifiers:[], span:{start:0,end:12}}, {path:'loot',...}]
+
+// For UI: fetch raw lists for the first token
+const raw = engine.resolveRaw(tokens[0]);
+// Show raw choices to user
+
+// To get a single selected value
+const selected = engine.resolveSelected(tokens[0]);
+
+// If the template is exactly one token and you want the raw/selected value
+const single = engine.renderRawIfSingleToken('[enemy_types]');
+// `single` will be the raw array element selected or the raw value
+```
+
 
 ## Error Handling Overview
 
@@ -213,18 +254,24 @@ Result: `weapons` list contains `[sword, bow, staff, dagger]`, both templates av
 
 #### Single File Loading
 ```javascript
-import { SigilEngine } from '@gulluth/sigil';
+import { SigilEngine, createSingleSigilData, createSigilData, parseYamlContent } from '@gulluth/sigil';
 
-// Method 1: Fetch at runtime
+// Method 1: Fetch at runtime and use the engine loader
 const yamlData = await fetch('./data.yaml').then(r => r.text());
 const engine = new SigilEngine();
 engine.loadDataFromString(yamlData);
 
-// Method 2: Bundle with Vite/Webpack
-import yamlData from './data.yaml?raw';
-const { parse } = await import('yaml');
-const data = parse(yamlData);
-const engine = new SigilEngine(data);
+// Method 2: Bundle with Vite/Webpack and use browser helpers
+import yamlDataRaw from './data.yaml?raw';
+// Parse a single YAML string into SIGIL internal structure
+const single = createSingleSigilData(yamlDataRaw);
+const engineFromSingle = new SigilEngine(single.lists);
+
+// Method 3: Merge multiple raw YAML files in the browser
+import coreRaw from './core.yaml?raw';
+import extrasRaw from './extras.yaml?raw';
+const merged = createSigilData([coreRaw, extrasRaw]);
+const engineMerged = new SigilEngine(merged.lists);
 ```
 
 #### Multi-File Loading (Manual Merging)
