@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { loadSingleFile, loadSigilData } from '../src/yaml-loader';
+import { loadSingleFile, loadSigilData } from '../src/yaml-loader.js';
 
 describe('YAML Loader', () => {
     describe('loadSingleFile', () => {

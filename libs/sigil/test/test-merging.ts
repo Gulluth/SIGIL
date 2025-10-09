@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { loadSigilData } from '../src/yaml-loader';
+import { loadSigilData } from '../src/yaml-loader.js';
 
 describe('List Merging', () => {
     it('should merge hierarchical lists from multiple files', () => {

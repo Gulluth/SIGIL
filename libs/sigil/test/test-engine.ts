@@ -1,7 +1,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { SigilEngine } from '../src/template-engine';
-import { loadSigilData } from '../src/yaml-loader';
+import { SigilEngine } from '../src/template-engine.js';
+import { loadSigilData } from '../src/yaml-loader.js';
 
 describe('SIGIL Template Engine', () => {
   let engine: SigilEngine;

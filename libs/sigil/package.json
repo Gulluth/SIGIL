@@ -2,19 +2,19 @@
   "name": "@gulluth/sigil",
   "version": "0.1.9",
   "description": "SIGIL (Sigil Is Generative Interpretive Language) - A minimalist YAML-based DSL for worldbuilding generators with automatic list merging and plugin architecture",
-  "main": "dist/src/index.js",
-  "types": "dist/src/index.d.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc && node scripts/inject-version.js",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
     "example": "node dist/examples/example.js",
-    "test": "node --test dist/test/*.js",
-    "test:watch": "node --test --watch dist/test/*.js",
+    "test": "npm run build && node --test dist/test/*.js",
+    "test:watch": "npm run build && node --test --watch dist/test/*.js",
     "prepublishOnly": "npm run build"
   },
   "files": [
-    "dist/src/**/*",
+    "dist/**/*",
     "README.md",
     "LICENSE"
   ],
@@ -46,8 +46,8 @@
   },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
-    "@types/node": "^24.4.0",
-    "typescript": "^5.9.2"
+    "@types/node": "^24.7.0",
+    "typescript": "^5.9.3"
   },
   "dependencies": {
     "yaml": "^2.8.1"

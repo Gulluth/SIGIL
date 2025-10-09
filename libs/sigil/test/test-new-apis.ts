@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert';
-import { SigilEngine } from '../src/template-engine';
+import { SigilEngine } from '../src/template-engine.js';
 
 describe('SIGIL Template Engine - New APIs', () => {
     it('parseTokens should return table descriptors with modifiers', () => {

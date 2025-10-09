@@ -15,20 +15,20 @@ const version = packageJson.version;
 console.log(`🔧 Injecting version ${version} into build output...`);
 
 // Path to compiled index.js
-const indexPath = path.join('dist', 'src', 'index.js');
+const indexPath = path.join('dist', 'index.js');
 
 try {
-    // Read the compiled file
-    let content = fs.readFileSync(indexPath, 'utf8');
+  // Read the compiled file
+  let content = fs.readFileSync(indexPath, 'utf8');
 
-    // Replace the placeholder with actual version
-    const updatedContent = content.replace(/__SIGIL_VERSION__/g, version);
+  // Replace the placeholder with actual version
+  const updatedContent = content.replace(/__SIGIL_VERSION__/g, version);
 
-    // Write back the updated content
-    fs.writeFileSync(indexPath, updatedContent, 'utf8');
+  // Write back the updated content
+  fs.writeFileSync(indexPath, updatedContent, 'utf8');
 
-    console.log(`✅ Version ${version} successfully injected into ${indexPath}`);
+  console.log(`✅ Version ${version} successfully injected into ${indexPath}`);
 } catch (error) {
-    console.error('❌ Error injecting version:', error.message);
-    process.exit(1);
+  console.error('❌ Error injecting version:', error.message);
+  process.exit(1);
 }

@@ -9,6 +9,12 @@ dist/
 build/
 *.tgz
 
+# Compiled JavaScript files in TypeScript projects
+libs/sigil/src/*.js
+libs/sigil/test/*.js
+apps/*/frontend/src/**/*.js
+apps/*/src/**/*.js
+
 # IDE files
 .vscode/
 .idea/
