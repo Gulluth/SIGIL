@@ -1,4 +1,4 @@
-import { SigilEngine, parseYamlContent, createSingleSigilData } from '@gulluth/sigil';
+import { SigilEngine, parseYamlContent, createSingleSigilData, createSigilData } from '@gulluth/sigil';
 
 export interface SigilResult {
   success: boolean;
@@ -12,6 +12,81 @@ export class SigilProcessor {
   constructor() {
     // Initialize with empty data - will be replaced when processing YAML
     this.engine = new SigilEngine({});
+  }
+
+  async processMultipleYaml(yamlFiles: { [filename: string]: string } | { filename: string; content: string }[], templateId?: string, debug = false): Promise<SigilResult> {
+    if (!yamlFiles) {
+      throw new Error('yamlFiles is required');
+    }
+
+    try {
+      // Process files using SIGIL's data loader approach
+      const yamlContents: string[] = [];
+
+      // Handle both object format { filename: content } and array format
+      if (Array.isArray(yamlFiles)) {
+        // Array format: [{ filename: string, content: string }]
+        if (yamlFiles.length === 0) {
+          throw new Error('No YAML files provided');
+        }
+
+        for (let i = 0; i < yamlFiles.length; i++) {
+          const fileData = yamlFiles[i];
+
+          if (!fileData || typeof fileData !== 'object') {
+            continue;
+          }
+
+          const { filename, content } = fileData;
+
+          if (!content || content.trim() === '') {
+            continue;
+          }
+
+          yamlContents.push(content);
+        }
+      } else {
+        // Object format: { filename: content, filename2: content2 }
+        const filenames = Object.keys(yamlFiles);
+        if (filenames.length === 0) {
+          throw new Error('No YAML files provided');
+        }
+
+        for (const filename of filenames) {
+          const content = yamlFiles[filename];
+
+          if (!content || content.trim() === '') {
+            continue;
+          }
+
+          yamlContents.push(content);
+        }
+      }
+
+      // Use SIGIL's built-in multi-file processing
+      const sigilData = createSigilData(yamlContents);
+
+      // Create new engine with lists data - exactly like SIGIL's tests
+      this.engine = new SigilEngine(sigilData.lists);
+
+      // Generate content using the template ID if provided
+      if (!templateId || !templateId.trim()) {
+        return { success: true, output: 'Enter a template ID and click Generate' };
+      }
+
+      // Auto-wrap user input in square brackets for SIGIL template syntax
+      const sigilTemplate = `[${templateId.trim()}]`;
+
+      const output = this.engine.generate(sigilTemplate);
+
+      return { success: true, output };
+    } catch (error) {
+      console.error('Error processing multiple YAML files:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+    }
   }
 
   async processYaml(yamlContent: string, templateId?: string, debug = false): Promise<SigilResult> {
@@ -46,10 +121,22 @@ export class SigilProcessor {
         console.log(`User input: '${templateId}' -> SIGIL template: '${sigilTemplate}'`);
       }
 
-      const output = this.engine.generate(sigilTemplate);
-
       if (debug) {
-        console.log(`Generated output:`, output);
+        console.log('About to call engine.generate with:', sigilTemplate);
+      }
+
+      let output: string;
+      try {
+        output = this.engine.generate(sigilTemplate);
+        if (debug) {
+          console.log(`Generated output:`, output);
+          console.log('Generation completed successfully');
+        }
+      } catch (genError) {
+        if (debug) {
+          console.error('Error during generation:', genError);
+        }
+        throw new Error(`Generation failed: ${genError instanceof Error ? genError.message : genError}`);
       }
 
       return { success: true, output };

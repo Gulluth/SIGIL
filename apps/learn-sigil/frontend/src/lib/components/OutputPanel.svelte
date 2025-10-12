@@ -36,7 +36,6 @@
           {isLoading ? "Generating..." : "Generate"}
         </button>
       </div>
-      <div class="text-xs text-gray-400">SIGIL Output</div>
     </div>
   </div>
 

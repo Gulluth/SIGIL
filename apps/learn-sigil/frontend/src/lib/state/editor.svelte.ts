@@ -110,9 +110,9 @@ export function updateFileContent(id: string, content: string): void {
   const file = editorStore.openFiles.get(id);
   if (!file) return;
 
-  const wasClean = !file.isDirty;
+  const originalContent = file.isNew ? '' : file.content;
   file.content = content;
-  file.isDirty = content !== (file.isNew ? '' : file.content);
+  file.isDirty = content !== originalContent;
 
   // Update the map to trigger reactivity
   editorStore.openFiles.set(id, file);
@@ -148,4 +148,43 @@ export function hasUnsavedChanges(): boolean {
 
 export function openFileCount(): number {
   return editorStore.openFiles.size;
+}
+
+// Tab navigation methods
+export function switchToTab(id: string): void {
+  if (editorStore.openFiles.has(id)) {
+    editorStore.activeTabId = id;
+  }
+}
+
+export function switchToNextTab(): void {
+  const files = getAllOpenFiles();
+  if (files.length <= 1) return;
+
+  const currentIndex = files.findIndex(f => f.id === editorStore.activeTabId);
+  const nextIndex = (currentIndex + 1) % files.length;
+  editorStore.activeTabId = files[nextIndex].id;
+}
+
+export function switchToPrevTab(): void {
+  const files = getAllOpenFiles();
+  if (files.length <= 1) return;
+
+  const currentIndex = files.findIndex(f => f.id === editorStore.activeTabId);
+  const prevIndex = currentIndex === 0 ? files.length - 1 : currentIndex - 1;
+  editorStore.activeTabId = files[prevIndex].id;
+}
+
+export function closeActiveTab(): boolean {
+  if (!editorStore.activeTabId) return false;
+  return closeFile(editorStore.activeTabId);
+}
+
+// Helper to get all file contents for SIGIL processing
+export function getAllFileContents(): Record<string, string> {
+  const contents: Record<string, string> = {};
+  for (const [id, file] of editorStore.openFiles.entries()) {
+    contents[file.name] = file.content;
+  }
+  return contents;
 }

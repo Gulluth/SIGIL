@@ -10,9 +10,10 @@ The goal of this project is to build a desktop SIGIL YAML editor/playground/tuto
   - Right: Live parsed/evaluated output with generation results
 - **File management**: Import/Export YAML files using native file dialogs
 - **Multi-file support**: Tab-based editing with SIGIL file merging capabilities; all open YAML files are processed together, with a Template ID text field next to the generate button
+- **Cartridge system**: `.sigil` file format for packaging complete SIGIL generators with metadata, themes, and tutorials
 - **Real-time validation**: YAML syntax validation and SIGIL semantic checking in editor
-- **Tutorial system**: Interactive learning pages with guided examples
-- **Native desktop experience**: Menu bar, keyboard shortcuts, window management
+- **Tutorial system**: Interactive learning pages with guided examples, deliverable as cartridges
+- **Frameless desktop experience**: Clean UI with compact header bar, hamburger menu, and keyboard shortcuts
 
 ## Core Architecture
 
@@ -25,14 +26,15 @@ The goal of this project is to build a desktop SIGIL YAML editor/playground/tuto
 7. **Native File System Access** - Via Wails APIs for file operations
 8. **Main Thread Processing** - SIGIL processing with Svelte runes
 9. **Tab-based Multi-file** - Primary file management interface
-10. **Terminal-inspired Theming** - Based on Gogh terminal themes
+10. **Retro Console Theming** - 8-bit inspired color palettes with pixel art aesthetics
+11. **Cartridge System** - `.sigil` file format for shareable SIGIL generators
 
 ## Key Architecture Decisions
 
 ### Editor Component
 **CodeMirror 6**  
 - Selected for its lightweight design, excellent tree-shaking, built-in YAML support, and extensive plugin ecosystem that allows for clean, customizable UI with toggleable features (e.g., line numbers, spell check) via preferences.
-- Provides the flexibility needed for SIGIL-specific extensions while maintaining a simple, GTK4/Gnome3-inspired appearance.
+- Provides the flexibility needed for SIGIL-specific extensions while maintaining a retro-inspired, distraction-free appearance.
 - Alternatives considered: Monaco (too heavy for YAML focus) and Ace (less modular for deep customization).
 
 ### SIGIL Runtime Integration
@@ -44,22 +46,27 @@ The goal of this project is to build a desktop SIGIL YAML editor/playground/tuto
 - Using modern reactive primitives for better TypeScript support and cleaner component architecture, with runes handling both component and global app state.
 
 ### Multi-File Strategy
-**Tab-based editing**  
-- Tabs positioned at top or bottom (user-togglable) serve as the primary file manager, replacing the need for a sidebar tree view.
-- Features: Close tabs with x button (prompt to save unsaved changes or new files), open files via native dialogs create new tabs, keyboard shortcuts for navigation (e.g., Ctrl+Tab), drag-and-drop reordering, scrollable tabs for overflow, recent files integration.
-- SIGIL Processing: All open YAML files are merged and sent to SIGIL runtime; UI includes a text input field next to the generate button to select the Template ID for processing.
+**Dual tab system with cartridge support**  
+- **Editor Tabs** (top of left panel): Open YAML files with close buttons, scrollable overflow, keyboard shortcuts (Ctrl+Tab), drag-and-drop reordering
+- **Output Tabs** (top of right panel): Output (default), Console (debug/errors), Cartridge (metadata editor when cartridge loaded)
+- **Cartridge Mode**: One cartridge open at a time; cartridge files shown with special badge/icon; standalone YAML files can be opened alongside and are implicitly added to cartridge on save
+- **Freestyle Mode**: Individual YAML files without cartridge context
+- **SIGIL Processing**: All open YAML files merged and sent to SIGIL runtime; text input field for Template ID with autocomplete suggestions from cartridge manifest
 
 ### Output Format
-**Plain text output as primary, with optional debug JSON view**  
-- Default display shows SIGIL-generated plain text for training and reference use, maintaining simplicity and direct correspondence to SIGIL's core output.
-- Optional debug mode (toggleable in preferences) provides JSON details (e.g., parsed structures, diagnostics) for development, without cluttering the main UI.
+**Tabbed output panel with multiple views**  
+- **Output Tab** (default): SIGIL-generated plain text for clean, focused results
+- **Console Tab**: Combined debug logs, validation errors (red), warnings (yellow), processing steps (blue), collapsible sections
+- **Cartridge Tab**: Only visible when cartridge loaded; edit manifest, manage files, customize theme, set suggested templates, preview thumbnail
+- Panel tabs allow users to switch contexts without cluttering the main UI, following the Svelte REPL pattern
 
 ### Tutorial Integration
-**Embedded tutorials with consistent UI, accessed via landing page**  
-- Default landing page shows hot-key commands (e.g., Ctrl+O for opening files) and two buttons: "New Empty File" and "Learn SIGIL".
-- Tutorials reuse the split-pane editor layout for consistency, with guided content in the right pane.
-- Session restoration: Preferences option (enabled by default) to reopen previously open files on launch; gracefully handles missing/corrupted files by falling back to landing page or opening accessible files.
-- Accessibility: Keyboard navigation for buttons and hot-keys.
+**Tutorial cartridges with embedded learning content**  
+- Default landing page shows hot-key commands (e.g., Ctrl+O for opening files) and buttons: "New Empty File", "Load Cartridge", and "Learn SIGIL"
+- Tutorials are regular `.sigil` cartridges that include guided content, potentially with progression tracking and validation checks
+- Landing page also features cartridge library/examples for discovery
+- Session restoration: Preferences option (enabled by default) to reopen previously open files/cartridges on launch; gracefully handles missing/corrupted files by falling back to landing page
+- Accessibility: Keyboard navigation for buttons and hot-keys
 
 ### Performance
 **Main thread processing with Svelte runes**  
@@ -71,6 +78,69 @@ The goal of this project is to build a desktop SIGIL YAML editor/playground/tuto
 - YAML syntax validation runs in real-time via CodeMirror for immediate feedback on structure.
 - SIGIL semantic validation is on-demand (e.g., via a "Validate" button), checking against SIGIL APIs for template validity and errors, to avoid overwhelming the UI early in development.
 
+### SIGIL Syntax Highlighting & Error Detection
+**Enhanced CodeMirror integration for SIGIL-specific syntax patterns**  
+- **Critical Issue Identified**: The current YAML parser treats unquoted square brackets `[melee]` as YAML flow sequences (arrays) instead of SIGIL template references, causing silent failures where `[dot.notation]` renders literally instead of processing hierarchically.
+- **Template Reference Validation**: Implement real-time detection of unquoted template references in YAML arrays and flag them as syntax errors with suggestions to quote them (`"[melee]"` instead of `[melee]`).  
+- **SIGIL Syntax Highlighting**: Extend CodeMirror's YAML mode to recognize and visually distinguish SIGIL-specific patterns:
+  - Template references: `[weapon.melee]`, `[dot.notation]` 
+  - Inline alternatives: `{a|an|the}`
+  - Hierarchical dot notation paths
+  - Quoted vs unquoted template references in arrays
+- **Common Error Patterns**: Build specific detection for frequent SIGIL mistakes:
+  - Unquoted square brackets in YAML arrays (the root cause of our dot notation issue)
+  - Invalid dot notation paths that don't exist in the current data structure
+  - Missing template references and circular dependencies
+  - Inconsistent template reference formatting
+- **Developer Experience**: Provide helpful error messages with context and fix suggestions, integrating with CodeMirror's linting system to show red squiggly lines and hover tooltips.
+
+### Cartridge System
+**`.sigil` file format for packaging complete SIGIL generators**  
+- **Format**: ZIP archive with `.sigil` extension containing YAML files, manifest, optional thumbnail, and optional fonts
+- **Manifest Structure** (`manifest.json`):
+  ```json
+  {
+    "name": "Fantasy Generator",
+    "version": "1.0.0",
+    "author": "Creator Name",
+    "description": "Generate fantasy characters and items",
+    "sigilVersion": "1.0.0",  // Optional, warns if mismatch
+    "files": ["tables.yaml", "weapons.yaml"],
+    "suggestedTemplates": [
+      { "id": "character", "description": "Generate a character" },
+      { "id": "weapon", "description": "Generate a weapon" }
+    ],
+    "theme": {
+      "palette": "nes-red",  // Or "custom"
+      "font": {
+        "family": "Press Start 2P",
+        "source": "google-fonts"
+      }
+    }
+  }
+  ```
+- **Thumbnail**: Optional `thumbnail.png` or `thumbnail.webp` (separate file in ZIP, not base64); falls back to default SIGIL icon
+- **Session Management**: One cartridge open at a time; must close (with save prompt if dirty) before opening another
+- **Mixed Mode**: Standalone YAML files can be opened alongside cartridge files; implicitly added to cartridge on save
+- **Sharing**: Cartridges enable easy distribution of complete SIGIL projects including themes and tutorials
+- **Discovery**: Landing page features cartridge library for browsing community generators
+
+### Frameless Window Design
+**Clean, distraction-free interface with compact header**  
+- **Frameless Window**: No native OS window chrome; custom window controls styled to match retro aesthetic
+- **Compact Header Bar** (GNOME Libadwaita style):
+  ```
+  ┌─────────────────────────────────────────────┐
+  │ ☰ Fantasy Generator        [▭] [◻] [✕]    │
+  └─────────────────────────────────────────────┘
+  ```
+  - Left: Hamburger menu + cartridge/file name (entire header is draggable except interactive elements)
+  - Right: Window controls (minimize, maximize, close)
+  - No toolbar clutter - all actions accessed via hamburger menu
+- **Hamburger Menu**: Essential actions only - New, Open Cartridge, Open File, Save, Save As, Preferences, About
+- **Keyboard Shortcuts**: Primary interaction method (Ctrl+O, Ctrl+S, Ctrl+Tab, etc.)
+- **Cartridge Name Display**: Shows manifest `name` field, or filename without extension if missing; no `.sigil` extension shown
+
 ## File/Folder Structure (Proposed)
 
 ```
@@ -78,28 +148,35 @@ frontend/src/
   lib/
     components/
       Editor.svelte           # Main editor with tab management
-      OutputPanel.svelte      # SIGIL results display
-      LandingPage.svelte      # Welcome screen with "New" and "Learn" buttons
+      OutputPanel.svelte      # Tabbed output (Output/Console/Cartridge)
+      HeaderBar.svelte        # Frameless window header with hamburger menu
+      LandingPage.svelte      # Welcome screen with "New", "Load Cartridge", "Learn" buttons
+      CartridgeEditor.svelte  # Cartridge metadata editor
       TutorialViewer.svelte   # Tutorial content display
     editor/
       CodeEditor.svelte       # CodeMirror 6 implementation
       extensions/             # SIGIL-specific CodeMirror extensions
     wails/
       fileSystem.ts          # Native file open/save operations
+      cartridge.ts           # Cartridge load/save/pack/unpack operations
       preferences.ts         # App settings persistence
     state/
       editor.ts              # Editor state using Svelte runes
       files.ts               # Open files and tab management
+      cartridge.ts           # Active cartridge state
       settings.ts            # User preferences and themes
     examples/
       examples.ts            # Built-in tutorial examples
     themes/
-      gogh-themes.ts         # Terminal-inspired theme definitions
+      retro-palettes.ts      # 8-bit console-inspired color palettes
     types/
       wails.d.ts             # Wails API type definitions
   routes/
-    +layout.svelte          # App shell with native menu integration
+    +layout.svelte          # App shell with frameless window header
     +page.svelte            # Landing page or main editor
+    cartridge/
+      [id]/
+        +page.svelte        # Cartridge detail/preview page
     tutorial/
       +layout.svelte        # Tutorial layout with split-pane
       +page.svelte          # Tutorial index
@@ -110,11 +187,46 @@ frontend/src/
 
 ### Wails Integration Points
 - **File Operations**: Native open/save dialogs via Wails APIs (replaces web file APIs)
-- **Menu Integration**: Native menu bar with standard File/Edit/View menus  
+- **Cartridge Operations**: ZIP file handling for loading/saving `.sigil` cartridges
+- **Frameless Window**: Custom window controls using Wails draggable regions
 - **Preferences**: Native app settings storage (replaces localStorage)
-- **Window Management**: Native window controls, remember size/position
+- **Window Management**: Remember size/position, custom minimize/maximize/close
 
 ---
+
+## Cartridge Manifest Structure
+
+```typescript
+export interface CartridgeManifest {
+  name: string;
+  version: string;
+  author: string;
+  description: string;
+  sigilVersion?: string;  // Optional, warns if mismatch
+  files: string[];        // YAML files included in cartridge
+  suggestedTemplates?: Array<{
+    id: string;
+    description: string;
+  }>;
+  theme?: {
+    palette: string;      // 'nes-red', 'game-boy', 'custom', etc.
+    colors?: {            // Only if palette === 'custom'
+      bg: string;
+      fg: string;
+      accent: string;
+    };
+    font?: {
+      family: string;
+      source: 'google-fonts' | 'system' | 'embedded';
+    };
+  };
+  thumbnail?: string;     // Filename of thumbnail image in cartridge
+  tutorial?: {            // Optional tutorial metadata
+    steps: number;
+    difficulty: 'beginner' | 'intermediate' | 'advanced';
+  };
+}
+```
 
 ## Tutorial Examples Structure
 
@@ -173,6 +285,11 @@ export const openFiles = $state<Map<string, string>>(new Map());
 export const isDirty = $state<boolean>(false);
 export const selectedTemplateId = $state<string>('');
 
+// Cartridge state
+export const activeCartridge = $state<CartridgeManifest | null>(null);
+export const cartridgeFiles = $state<Set<string>>(new Set());  // Files belonging to cartridge
+export const standaloneFiles = $state<Set<string>>(new Set()); // Files not in cartridge
+
 // SIGIL processing state  
 export const isProcessing = $state<boolean>(false);
 export const lastResult = $state<string | null>(null);
@@ -180,8 +297,8 @@ export const lastError = $state<string | null>(null);
 
 // UI state
 export const showLineNumbers = $state<boolean>(true);
-export const currentTheme = $state<string>('dracula');
-export const tabPosition = $state<'top' | 'bottom'>('top');
+export const currentTheme = $state<string>('nes-red');  // Retro palette
+export const activeOutputTab = $state<'output' | 'console' | 'cartridge'>('output');
 ```
 
 ## Wails Integration Considerations
@@ -222,12 +339,12 @@ export async function saveYamlFile(content: string, filename?: string): Promise<
 }
 ```
 
-### Menu Integration
-Native menu bar integration for desktop app experience:
-- **File Menu**: New, Open, Save, Save As, Recent Files, Quit
-- **Edit Menu**: Undo, Redo, Cut, Copy, Paste, Find, Replace  
-- **View Menu**: Toggle Panels, Zoom, Theme Selection
-- **Help Menu**: Tutorial, Documentation, About
+### Hamburger Menu Structure
+Frameless window with compact menu for essential actions:
+- **File**: New, Open Cartridge, Open File, Save, Save As Cartridge, Export YAML, Recent, Quit
+- **Edit**: Undo, Redo, Cut, Copy, Paste, Find, Replace  
+- **View**: Toggle Line Numbers, Theme Selection, Font Size
+- **Help**: Learn SIGIL, Keyboard Shortcuts, About
 
 ### Application Settings
 Replace localStorage with native preferences:
@@ -236,18 +353,22 @@ Replace localStorage with native preferences:
 import { GetConfig, SetConfig } from '@wailsio/runtime';
 
 interface AppSettings {
-  theme: 'light' | 'dark' | 'system';
+  theme: 'nes-red' | 'game-boy' | 'c64-blue' | 'custom';
   editorFontSize: number;
   autoSave: boolean;
   recentFiles: string[];
+  recentCartridges: string[];
+  sessionRestore: boolean;
 }
 
 export async function loadSettings(): Promise<AppSettings> {
   return await GetConfig('app.settings') || {
-    theme: 'system',
+    theme: 'nes-red',
     editorFontSize: 14, 
     autoSave: true,
-    recentFiles: []
+    recentFiles: [],
+    recentCartridges: [],
+    sessionRestore: true
   };
 }
 
@@ -265,10 +386,20 @@ export async function saveSettings(settings: AppSettings): Promise<void> {
 - Alternatives considered: Native CSS (more manual work) and CSS-in-JS (runtime overhead).
 
 ### Theme System
-- **CSS Custom Properties**: Define theme tokens as CSS variables for easy customization.
-- **System Theme Detection**: Respect OS light/dark mode preferences with automatic switching.
-- **User Override**: Allow manual theme selection in settings, with themes based on well-known terminal themes from [Gogh](https://gogh-co.github.io/Gogh/) (e.g., Dracula, Solarized, Monokai) adapted for a desktop app UI.
-- **Monochrome + Syntax Highlighting**: Simple themes focusing on readability, with distinct colors for YAML/SIGIL syntax elements while maintaining an uncluttered appearance.
+**Retro 8-bit console-inspired color palettes**  
+- **CSS Custom Properties**: Define theme tokens as CSS variables for easy customization
+- **Rainbow Monochrome Palettes**: Each palette uses monochromatic base + accent colors for syntax highlighting
+- **Built-in Palettes**:
+  - 🔴 **NES Red**: Warm reds/oranges (Super Mario Bros aesthetic)
+  - 🟠 **Atari Orange**: Earth tones (Atari 2600 classic)
+  - 🟡 **Game Boy**: Greens/yellows (DMG-01 original)
+  - 🟢 **Zelda Green**: Forest greens (Link's palette)
+  - 🔵 **Commodore 64**: Blues/purples (C64 blue screen)
+  - 🟣 **SNES Purple**: Deep purples (Mode 7 vibes)
+  - ⚫ **Pixel Noir**: Grayscale with cyan/magenta accents
+- **Cartridge Theme Override**: Cartridges can specify custom palettes and fonts that override user settings
+- **Font Support**: Start with Google Fonts references; future support for embedded fonts in cartridges
+- **Pixel Art Aesthetic**: Clean borders, retro typography, optional CRT-style effects
 
 ## Development Workflow Considerations
 
@@ -292,13 +423,16 @@ export async function saveSettings(settings: AppSettings): Promise<void> {
 
 1. **Set up basic Wails + SvelteKit integration** with static adapter
 2. **Install and configure dependencies** (CodeMirror 6, TailwindCSS)  
-3. **Implement landing page** with "New Empty File" and "Learn SIGIL" buttons
-4. **Create tab-based editor component** with CodeMirror integration
-5. **Add native file operations** using Wails APIs (open/save/recent files)
-6. **Integrate SIGIL runtime** for main-thread processing with runes
-7. **Implement basic tutorial system** with embedded lessons
-8. **Add terminal-inspired theming** based on Gogh themes
-9. **Create SIGIL validation** (on-demand) and YAML syntax checking (real-time)
+3. **Implement frameless window** with compact header bar and hamburger menu
+4. **Create landing page** with "New File", "Load Cartridge", and "Learn SIGIL" buttons
+5. **Build dual-tab editor component** with CodeMirror integration (editor tabs + output tabs)
+6. **Add native file operations** using Wails APIs (open/save/recent files)
+7. **Implement cartridge system** (`.sigil` format, manifest, pack/unpack)
+8. **Integrate SIGIL runtime** for main-thread processing with runes
+9. **Create retro theme system** with 8-bit console palettes
+10. **Add SIGIL syntax highlighting** and validation (unquoted bracket detection, dot notation validation)
+11. **Build cartridge editor tab** for metadata and theme customization
+12. **Implement tutorial system** as special cartridges with guided content
 ```
 
 # Code Editor Component
