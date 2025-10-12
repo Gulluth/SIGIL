@@ -5,6 +5,6 @@
   // We'll add back the landing page and file management later
 </script>
 
-<div class="h-screen w-screen bg-gray-800">
+<div class="h-full w-full bg-gray-800">
   <Editor />
 </div>

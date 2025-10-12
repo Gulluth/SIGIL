@@ -35,13 +35,15 @@ func main() {
 		},
 	})
 
-	// Create a new window with the necessary options.
-	// 'Title' is the title of the window.
+	// Create a frameless window with custom controls.
+	// 'Title' is the window title (shown in taskbar).
+	// 'Frameless' removes the native window chrome for custom UI.
 	// 'Mac' options tailor the window when running on macOS.
 	// 'BackgroundColour' is the background colour of the window.
 	// 'URL' is the URL that will be loaded into the webview.
 	app.Window.NewWithOptions(application.WebviewWindowOptions{
-		Title: "SIGIL Editor",
+		Title:     "SIGIL Editor",
+		Frameless: true, // Enable frameless window for custom header bar
 		Mac: application.MacWindow{
 			InvisibleTitleBarHeight: 50,
 			Backdrop:                application.MacBackdropTranslucent,
@@ -49,6 +51,10 @@ func main() {
 		},
 		BackgroundColour: application.NewRGB(27, 38, 54),
 		URL:              "/",
+		Width:            1200,
+		Height:           800,
+		MinWidth:         800,
+		MinHeight:        600,
 	})
 
 	// Run the application. This blocks until the application has been exited.
