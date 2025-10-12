@@ -27,6 +27,9 @@ func main() {
 	app := application.New(application.Options{
 		Name:        "SIGIL Editor",
 		Description: "A desktop YAML editor and playground for SIGIL templates",
+		Services: []application.Service{
+			application.NewService(NewFileService()),
+		},
 		Assets: application.AssetOptions{
 			Handler: application.AssetFileServerFS(assets),
 		},

@@ -1,9 +1,30 @@
 <script lang="ts">
   import { Application, Window } from "@wailsio/runtime";
-
-  let { fileName = "SIGIL Editor" }: { fileName?: string } = $props();
+  import {
+    createNewFile,
+    openFile as openFileInStore,
+    getActiveFile,
+    markFileSaved,
+    updateFileContent,
+  } from "../state/editor.svelte.ts";
+  import {
+    openFileDialog,
+    saveFile as saveFileToSystem,
+    saveFileDialog,
+    confirmUnsavedChanges,
+    showErrorDialog,
+  } from "../wails/fileSystem";
 
   let showMenu = $state(false);
+
+  // Computed filename from active file
+  let displayFileName = $derived(() => {
+    const activeFile = getActiveFile();
+    if (!activeFile) return "SIGIL Editor";
+
+    const name = activeFile.name || "Untitled";
+    return activeFile.isDirty ? `${name} *` : name;
+  });
 
   // Initialize window lazily to avoid issues during SSR
   let currentWindow: Window | null = null;
@@ -47,29 +68,74 @@
     }
   }
 
-  // Menu actions (placeholders for now)
+  // Menu actions
   function newFile() {
     closeMenu();
-    console.log("New File");
-    // TODO: Implement new file
+    createNewFile();
   }
 
-  function openFile() {
+  async function openFile() {
     closeMenu();
-    console.log("Open File");
-    // TODO: Implement open file dialog
+    try {
+      const result = await openFileDialog();
+      if (result) {
+        openFileInStore(result.name, result.content, result.path);
+      }
+    } catch (error) {
+      console.error("Error opening file:", error);
+      await showErrorDialog("Open File Error", `Failed to open file: ${error}`);
+    }
   }
 
-  function saveFile() {
+  async function saveFile() {
     closeMenu();
-    console.log("Save File");
-    // TODO: Implement save file
+    const activeFile = getActiveFile();
+    if (!activeFile) return;
+
+    try {
+      // If file has no path, do Save As
+      if (!activeFile.filePath) {
+        await saveAsFile();
+        return;
+      }
+
+      // Save to existing path
+      const result = await saveFileToSystem(
+        activeFile.filePath,
+        activeFile.content,
+      );
+      if (result.success) {
+        // Mark file as saved (not dirty)
+        markFileSaved(activeFile.id, activeFile.filePath);
+      } else {
+        await showErrorDialog("Save Error", "Failed to save file");
+      }
+    } catch (error) {
+      console.error("Error saving file:", error);
+      await showErrorDialog("Save Error", `Failed to save file: ${error}`);
+    }
   }
 
-  function saveAsFile() {
+  async function saveAsFile() {
     closeMenu();
-    console.log("Save As");
-    // TODO: Implement save as dialog
+    const activeFile = getActiveFile();
+    if (!activeFile) return;
+
+    try {
+      const path = await saveFileDialog(activeFile.name);
+      if (!path) return; // User cancelled
+
+      const result = await saveFileToSystem(path, activeFile.content);
+      if (result.success) {
+        // Update file path and mark as saved
+        markFileSaved(activeFile.id, path);
+      } else {
+        await showErrorDialog("Save Error", "Failed to save file");
+      }
+    } catch (error) {
+      console.error("Error saving file:", error);
+      await showErrorDialog("Save Error", `Failed to save file: ${error}`);
+    }
   }
 
   function showPreferences() {
@@ -107,7 +173,7 @@
         </svg>
       </button>
 
-      <span class="file-name">{fileName}</span>
+      <span class="file-name">{displayFileName()}</span>
     </div>
 
     <!-- Center: Draggable spacer -->
