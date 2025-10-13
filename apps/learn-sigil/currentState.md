@@ -12,57 +12,58 @@ High-Priority Features (Implementation Order)
 
 ## Phase 1: Core Desktop Experience
 
-### 1. Frameless Window + Compact UI 🖼️ **[NEXT]**
-Status: Needs implementation
+### 1. Frameless Window + Compact UI
+Status: ✅ Implemented and working
 Priority: **Enables hamburger menu and professional desktop feel**
 
-- [ ] Frameless window with custom window controls
-- [ ] Compact header bar (GNOME Libadwaita style)
-- [ ] Hamburger menu for essential actions (New, Open, Save, Save As, Preferences, About)
-- [ ] Draggable window regions (entire header except controls)
-- [ ] File name display in header (or "SIGIL Editor" when no file)
-- [ ] Custom minimize/maximize/close buttons (retro styled)
-- [ ] No toolbar clutter - clean, distraction-free interface
+- [X] Frameless window with custom window controls
+- [X] Compact header bar (GNOME Libadwaita style)
+- [X] Hamburger menu for essential actions (New, Open, Save, Save As, Preferences, About)
+- [X] Draggable window regions (entire header except controls)
+- [X] File name display in header (shows active file with dirty indicator *)
+- [X] Custom minimize/maximize/close buttons
+- [X] No toolbar clutter - clean, distraction-free interface
 
-### 2. File System Integration 🎯 **[CRITICAL]**
-Status: Missing critical functionality
+### 2. File System Integration
+Status: ✅ Core functionality implemented
 Priority: **Ship a usable build - users can open, edit, and save YAML files**
 
-- [ ] Native file open/save operations using Wails APIs
-- [ ] File open dialog with YAML filter (`.yaml`, `.yml`)
-- [ ] File save dialog with default `.yaml` extension
-- [ ] "Dirty" file indicators (unsaved changes)
+- [X] Native file open/save operations using Wails APIs
+- [X] File open dialog with YAML filter (`.yaml`, `.yml`)
+- [X] File save dialog with default `.yaml` extension
+- [X] "Dirty" file indicators (unsaved changes) - asterisk in filename
+- [X] Go backend file I/O service (ReadFile, WriteFile)
+- [X] TypeScript bindings auto-generated
 - [ ] Save confirmation prompts on close
 - [ ] Recent files management (show in hamburger menu)
 - [ ] Auto-save functionality (optional, in preferences)
 - [ ] Session restoration (reopen files on startup)
 
-### 3. Dual Output Panel Tabs 📑 **[MVP]**
-Status: Basic output display, needs tab system
+### 3. Dual Output Panel Tabs
+Status: Basic output display functional
 Priority: **Start simple - Output and Console tabs only**
 
 - [ ] Tab bar above output panel (like Svelte REPL)
 - [ ] **Output Tab** (default): Generated SIGIL text, clean display
 - [ ] **Console Tab**: Debug logs, errors (red), warnings (yellow), processing info (blue)
 - [ ] Tab switching functionality
-- [ ] Collapsible sections in console for organization
-- [ ] Copy output button
-- [ ] Clear console button
 
-### 4. Landing Page/Welcome Screen 📋 **[UX Polish]**
-Status: Component exists but not integrated
+### 4. Landing Page/Welcome Screen
+Status: ✅ Implemented and working
 Priority: **Professional first impression**
 
-- [ ] Default startup screen when no files open
-- [ ] Buttons: "New File", "Open File" (cartridges come later)
+- [X] Default startup screen when no files open
+- [X] Buttons: "New File", "Open File", "Learn SIGIL"
+- [X] Keyboard shortcuts reference panel
+- [X] Graceful handling when no files are open
+- [X] Returns to landing page when all tabs closed
+- [X] Fixed Map reactivity for proper state management
 - [ ] Recent files quick access list
-- [ ] Keyboard shortcuts reference
-- [ ] Graceful handling when no files are open
 - [ ] Session restoration toggle in preferences
 
 ## Phase 2: Enhanced Features
 
-### 5. Multi-File Tab Management (Editor Tabs) 🎯
+### 5. Multi-File Tab Management
 Status: ✅ Implemented, needs refinement
 
 - [X] Tab-based interface with Svelte 5 runes
@@ -70,7 +71,6 @@ Status: ✅ Implemented, needs refinement
 - [ ] Keyboard shortcuts (Ctrl+Tab navigation, Ctrl+W close)
 - [ ] Drag-and-drop tab reordering
 - [ ] Scrollable tabs for overflow
-- [ ] Tab context menu (Close, Close Others, Close All)
 
 ### 6. SIGIL Syntax Highlighting & Validation 🔧
 Status: Critical for user experience
@@ -92,7 +92,7 @@ Status: Needs complete implementation
 - [ ] 8-bit console-inspired color palettes (rainbow monochrome)
 - [ ] Built-in palettes: NES Red, Game Boy, C64 Blue, SNES Purple, Pixel Noir
 - [ ] CSS custom properties for theme tokens
-- [ ] Theme selection in hamburger menu
+- [ ] Theme selection in settings
 - [ ] Pixel art aesthetic: clean borders, retro typography
 - [ ] Google Fonts integration for custom fonts
 

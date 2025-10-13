@@ -6,7 +6,7 @@
     getActiveFile,
     markFileSaved,
     updateFileContent,
-  } from "../state/editor.svelte.ts";
+  } from "../state/editor.svelte";
   import {
     openFileDialog,
     saveFile as saveFileToSystem,

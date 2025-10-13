@@ -3,6 +3,7 @@
   import OutputPanel from "./OutputPanel.svelte";
   import SplitPane from "./SplitPane.svelte";
   import TabBar from "./TabBar.svelte";
+  import LandingPage from "./LandingPage.svelte";
   import { SigilProcessor } from "../sigil/processor";
   import {
     editorStore,
@@ -16,6 +17,8 @@
     updateFileContent,
     getAllFileContents,
   } from "../state/editor.svelte.js";
+  import { openFileDialog } from "../wails/fileSystem";
+  import { openFile as openFileInStore } from "../state/editor.svelte";
 
   let templateId = $state("dot.notation");
   let output = $state("");
@@ -23,54 +26,6 @@
   let isLoading = $state(false);
 
   const processor = new SigilProcessor();
-
-  // Initialize with a default file if no files are open
-  $effect(() => {
-    console.log("INIT EFFECT: Checking if files need to be created...");
-    const openFiles = getAllOpenFiles();
-    console.log("INIT EFFECT: Current open files:", openFiles.length);
-
-    if (openFiles.length === 0) {
-      console.log("INIT EFFECT: Creating default file...");
-      const defaultContent = `flat:
-  - its [this] and [that]
-  - "[this] and [that]"
-
-this:
-  - foo
-  - biz
-
-that:
-  - bar
-  - bazz
-
-dot:
-  notation:
-    - "[melee]"
-    - "[ranged]" 
-    - "[grenade]"
-    
-melee:
-  - knife
-  - machette
-  - kukuri
-  
-ranged:
-  - flare gun
-  - revolver
-  - autopistol
-  
-grenade:
-  - flashbang
-  - smoke grenade
-  - frag grenade`;
-      const fileId = createNewFile("example");
-      updateFileContent(fileId, defaultContent);
-      console.log("INIT EFFECT: Default file created with ID:", fileId);
-    } else {
-      console.log("INIT EFFECT: Files already exist, skipping creation");
-    }
-  });
 
   // Get active file content reactively
   const activeFile = $derived(getActiveFile());
@@ -206,53 +161,103 @@ grenade:
     const target = event.target as HTMLInputElement;
     templateId = target.value;
   }
+
+  // Landing page actions
+  function handleNewFile() {
+    createNewFile();
+  }
+
+  async function handleOpenFile() {
+    try {
+      const result = await openFileDialog();
+      if (result) {
+        openFileInStore(result.name, result.content, result.path);
+      }
+    } catch (error) {
+      console.error("Error opening file:", error);
+    }
+  }
+
+  function handleLearnSigil() {
+    // TODO: Open tutorial or documentation
+    console.log("Learn SIGIL clicked");
+  }
+
+  // Check if we should show landing page - directly watch Map size
+  const showLandingPage = $derived.by(() => {
+    // Access the Map directly to ensure reactivity
+    const size = editorStore.openFiles.size;
+    console.log(
+      "DERIVED: Checking landing page visibility, files count:",
+      size,
+    );
+    return size === 0;
+  });
+
+  // Debug effect to track landing page visibility
+  $effect(() => {
+    console.log(
+      "EFFECT: showLandingPage =",
+      showLandingPage,
+      "| files =",
+      editorStore.openFiles.size,
+    );
+  });
 </script>
 
-<div
-  class="h-full w-full bg-gray-800 flex flex-col"
-  onkeydown={handleKeydown}
-  tabindex="-1"
-  role="application"
->
-  <!-- Tab Bar -->
-  <TabBar
-    tabs={allTabs}
-    activeTabId={editorStore.activeTabId}
-    onTabSelect={handleTabSelect}
-    onTabClose={handleTabClose}
-    onNewTab={handleNewTab}
+{#if showLandingPage}
+  <LandingPage
+    onnewfile={handleNewFile}
+    onopenfile={handleOpenFile}
+    onlearnsigil={handleLearnSigil}
   />
+{:else}
+  <div
+    class="h-full w-full bg-gray-800 flex flex-col"
+    onkeydown={handleKeydown}
+    tabindex="-1"
+    role="application"
+  >
+    <!-- Tab Bar -->
+    <TabBar
+      tabs={allTabs}
+      activeTabId={editorStore.activeTabId}
+      onTabSelect={handleTabSelect}
+      onTabClose={handleTabClose}
+      onNewTab={handleNewTab}
+    />
 
-  <!-- Editor Content -->
-  <div class="flex-1 overflow-hidden">
-    <SplitPane leftLabel="YAML Editor" rightLabel="SIGIL Output">
-      {#snippet leftContent()}
-        {#if activeFile}
-          <CodeEditor
-            value={yamlContent}
-            onchange={handleYamlChange}
-            placeholder="Enter your SIGIL YAML here..."
-          />
-        {:else}
-          <div class="flex items-center justify-center h-full text-gray-500">
-            <div class="text-center">
-              <div class="text-lg">No file open</div>
-              <div class="mt-1 text-sm">Create a new tab to get started</div>
+    <!-- Editor Content -->
+    <div class="flex-1 overflow-hidden">
+      <SplitPane leftLabel="YAML Editor" rightLabel="SIGIL Output">
+        {#snippet leftContent()}
+          {#if activeFile}
+            <CodeEditor
+              value={yamlContent}
+              onchange={handleYamlChange}
+              placeholder="Enter your SIGIL YAML here..."
+            />
+          {:else}
+            <div class="flex items-center justify-center h-full text-gray-500">
+              <div class="text-center">
+                <div class="text-lg">No file open</div>
+                <div class="mt-1 text-sm">Create a new tab to get started</div>
+              </div>
             </div>
-          </div>
-        {/if}
-      {/snippet}
+          {/if}
+        {/snippet}
 
-      {#snippet rightContent()}
-        <OutputPanel
-          content={output}
-          {error}
-          {isLoading}
-          {templateId}
-          ongenerate={handleGenerate}
-          ontemplatechange={handleTemplateIdChange}
-        />
-      {/snippet}
-    </SplitPane>
+        {#snippet rightContent()}
+          <OutputPanel
+            content={output}
+            {error}
+            {isLoading}
+            {templateId}
+            ongenerate={handleGenerate}
+            ontemplatechange={handleTemplateIdChange}
+          />
+        {/snippet}
+      </SplitPane>
+    </div>
   </div>
-</div>
+{/if}

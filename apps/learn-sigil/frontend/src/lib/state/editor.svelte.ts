@@ -62,7 +62,10 @@ export function createNewFile(name: string = 'Untitled'): string {
     isNew: true,
   };
 
-  editorStore.openFiles.set(id, fileTab);
+  // Create new Map to trigger reactivity
+  const newMap = new Map(editorStore.openFiles);
+  newMap.set(id, fileTab);
+  editorStore.openFiles = newMap;
   editorStore.activeTabId = id;
 
   return id;
@@ -79,7 +82,10 @@ export function openFile(name: string, content: string, filePath?: string): stri
     filePath,
   };
 
-  editorStore.openFiles.set(id, fileTab);
+  // Create new Map to trigger reactivity
+  const newMap = new Map(editorStore.openFiles);
+  newMap.set(id, fileTab);
+  editorStore.openFiles = newMap;
   editorStore.activeTabId = id;
 
   return id;
@@ -95,7 +101,10 @@ export function closeFile(id: string): boolean {
     // For now, we'll just allow closing
   }
 
-  editorStore.openFiles.delete(id);
+  // Create new Map to trigger reactivity
+  const newMap = new Map(editorStore.openFiles);
+  newMap.delete(id);
+  editorStore.openFiles = newMap;
 
   // If we closed the active tab, switch to another one
   if (editorStore.activeTabId === id) {
@@ -114,8 +123,10 @@ export function updateFileContent(id: string, content: string): void {
   file.content = content;
   file.isDirty = content !== originalContent;
 
-  // Update the map to trigger reactivity
-  editorStore.openFiles.set(id, file);
+  // Create new Map to trigger reactivity
+  const newMap = new Map(editorStore.openFiles);
+  newMap.set(id, file);
+  editorStore.openFiles = newMap;
 }
 
 export function markFileSaved(id: string, filePath?: string): void {
@@ -130,7 +141,10 @@ export function markFileSaved(id: string, filePath?: string): void {
     file.name = filePath.split(/[\\/]/).pop() || file.name;
   }
 
-  editorStore.openFiles.set(id, file);
+  // Create new Map to trigger reactivity
+  const newMap = new Map(editorStore.openFiles);
+  newMap.set(id, file);
+  editorStore.openFiles = newMap;
 }
 
 export function getActiveFile(): FileTab | null {
