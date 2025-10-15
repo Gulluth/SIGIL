@@ -28,13 +28,13 @@ jobs:
         run: npm ci
       
       - name: Run build
-        run: npm nx build
+        run: npx nx build
       
       - name: Run tests
-        run: npm nx test
+        run: npx nx test
       
       - name: Run example
-        run: npm nx example
+        run: npx nx example
 
   # Separate job to test publishing readiness
   publish-check:
