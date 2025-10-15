@@ -346,6 +346,12 @@ Frameless window with compact menu for essential actions:
 - **View**: Toggle Line Numbers, Theme Selection, Font Size
 - **Help**: Learn SIGIL, Keyboard Shortcuts, About
 
+### Drag and Drop
+Yaml and Cartridges can be loaded with drag-and-drop.
+- **Drop zone visual feedback**
+- Loading multiple YAML files opens a new tab for each
+- Silently ignores non-yaml and sigil cartridges
+
 ### Application Settings
 Replace localStorage with native preferences:
 ```typescript
@@ -433,17 +439,12 @@ export async function saveSettings(settings: AppSettings): Promise<void> {
 10. **Add SIGIL syntax highlighting** and validation (unquoted bracket detection, dot notation validation)
 11. **Build cartridge editor tab** for metadata and theme customization
 12. **Implement tutorial system** as special cartridges with guided content
-```
 
 # Code Editor Component
 
-```
-```
-```
+## Playground Component
 
-Playground Component
-
-```
+```html
 <script lang="ts">
   import CodeEditor from '$lib/editor/CodeEditor.svelte';
   import { code, parsing, result, error } from '$lib/stores/playground';
@@ -611,7 +612,7 @@ Playground Component
 
 # Main Page
 
-```
+```html
 <script>
   import Playground from '$lib/components/Playground.svelte';
 </script>

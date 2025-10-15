@@ -1,4 +1,4 @@
-Bootstrapping the SIGIL Editor
+### 0. Bootstrapping the SIGIL Editor
 
 - [X] Basic split-pane editor with CodeMirror 6
 - [X] SIGIL integration (string template processing)
@@ -8,12 +8,8 @@ Bootstrapping the SIGIL Editor
 - [X] Multi-file tab management with reactive state
 - [X] Multi-file YAML processing with SIGIL
 
-High-Priority Features (Implementation Order)
-
-## Phase 1: Core Desktop Experience
-
 ### 1. Frameless Window + Compact UI
-Status: ✅ Implemented and working
+Status: partially implemented
 Priority: **Enables hamburger menu and professional desktop feel**
 
 - [X] Frameless window with custom window controls
@@ -21,26 +17,34 @@ Priority: **Enables hamburger menu and professional desktop feel**
 - [X] Hamburger menu for essential actions (New, Open, Save, Save As, Preferences, About)
 - [X] Draggable window regions (entire header except controls)
 - [X] File name display in header (shows active file with dirty indicator *)
-- [X] Custom minimize/maximize/close buttons
+- [X] Custom minimize/maximize/windowed(floating?)/close buttons
 - [X] No toolbar clutter - clean, distraction-free interface
+- [X] Window resize handles for all 8 directions
+- [ ] App Icon
+
+Bugs:
+- [ ] Window resizing has a race condition causing the window to resize before evaluating xcoordinates, making the window resize affinity be the lower-right corner.
 
 ### 2. File System Integration
-Status: ✅ Core functionality implemented
+Status: partially implemented
 Priority: **Ship a usable build - users can open, edit, and save YAML files**
 
 - [X] Native file open/save operations using Wails APIs
 - [X] File open dialog with YAML filter (`.yaml`, `.yml`)
 - [X] File save dialog with default `.yaml` extension
-- [X] "Dirty" file indicators (unsaved changes) - asterisk in filename
+- [ ] File "Save As" dialog retains filename in tab
+- [ ] "Dirty" file indicators (unsaved changes) - asterisk in tab
 - [X] Go backend file I/O service (ReadFile, WriteFile)
 - [X] TypeScript bindings auto-generated
 - [ ] Save confirmation prompts on close
+
+Nice to have:
 - [ ] Recent files management (show in hamburger menu)
 - [ ] Auto-save functionality (optional, in preferences)
 - [ ] Session restoration (reopen files on startup)
 
 ### 3. Dual Output Panel Tabs
-Status: Basic output display functional
+Status: todo
 Priority: **Start simple - Output and Console tabs only**
 
 - [ ] Tab bar above output panel (like Svelte REPL)
@@ -49,7 +53,7 @@ Priority: **Start simple - Output and Console tabs only**
 - [ ] Tab switching functionality
 
 ### 4. Landing Page/Welcome Screen
-Status: ✅ Implemented and working
+Status: Partially implemented
 Priority: **Professional first impression**
 
 - [X] Default startup screen when no files open
@@ -58,22 +62,25 @@ Priority: **Professional first impression**
 - [X] Graceful handling when no files are open
 - [X] Returns to landing page when all tabs closed
 - [X] Fixed Map reactivity for proper state management
+- [ ] Animated Sigil Logo
+
+Nice to have:
 - [ ] Recent files quick access list
 - [ ] Session restoration toggle in preferences
 
-## Phase 2: Enhanced Features
-
 ### 5. Multi-File Tab Management
-Status: ✅ Implemented, needs refinement
+Status: partially implemented
 
 - [X] Tab-based interface with Svelte 5 runes
 - [X] Tab switching and close functionality
-- [ ] Keyboard shortcuts (Ctrl+Tab navigation, Ctrl+W close)
 - [ ] Drag-and-drop tab reordering
 - [ ] Scrollable tabs for overflow
 
-### 6. SIGIL Syntax Highlighting & Validation 🔧
-Status: Critical for user experience
+Nice to have:
+- [ ] Keyboard shortcuts (Ctrl+Tab navigation, Ctrl+W close)
+
+### 6. SIGIL Syntax Highlighting & Validation
+Status: todo
 
 - [ ] CodeMirror extension for SIGIL template references `[weapon.melee]`
 - [ ] Highlight inline alternatives `{a|an|the}`
@@ -86,8 +93,8 @@ Status: Critical for user experience
 - [ ] Hover tooltips for validation issues
 - [ ] Console tab for validation feedback
 
-### 7. Retro Theme System 🎨
-Status: Needs complete implementation
+### 7. Theme System
+Status: todo
 
 - [ ] 8-bit console-inspired color palettes (rainbow monochrome)
 - [ ] Built-in palettes: NES Red, Game Boy, C64 Blue, SNES Purple, Pixel Noir
@@ -96,10 +103,8 @@ Status: Needs complete implementation
 - [ ] Pixel art aesthetic: clean borders, retro typography
 - [ ] Google Fonts integration for custom fonts
 
-## Phase 3: Advanced Features
-
-### 8. Cartridge System 🎮
-Status: Core concept defined, deferred until core is solid
+### 8. Cartridge System
+Status: todo
 
 - [ ] `.sigil` file format (ZIP with manifest, YAML files, optional thumbnail)
 - [ ] Cartridge loading/saving operations
@@ -111,8 +116,9 @@ Status: Core concept defined, deferred until core is solid
 - [ ] Cartridge tab in output panel
 - [ ] "Load Cartridge" button on landing page
 
-### 9. Tutorial System 📚
-Status: Concept defined, builds on cartridge system
+### 9. Tutorial System
+Status: todo
+Priority: Concept defined, builds on cartridge system
 
 - [ ] Tutorial cartridges (regular `.sigil` files with tutorial content)
 - [ ] 1-page YAML tutorial: lists and dicts basics

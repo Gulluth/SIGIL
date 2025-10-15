@@ -1,0 +1,167 @@
+{
+  "name": "learn-sigil",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/learn-sigil",
+  "projectType": "application",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "make dev",
+        "cwd": "apps/learn-sigil"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "outputs": [
+        "{projectRoot}/bin"
+      ],
+      "options": {
+        "command": "make build",
+        "cwd": "apps/learn-sigil"
+      },
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "build-all": {
+      "executor": "nx:run-commands",
+      "outputs": [
+        "{projectRoot}/bin"
+      ],
+      "options": {
+        "command": "make build-all",
+        "cwd": "apps/learn-sigil"
+      },
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "build-darwin-arm64": {
+      "executor": "nx:run-commands",
+      "outputs": [
+        "{projectRoot}/bin"
+      ],
+      "options": {
+        "command": "make build-darwin-arm64",
+        "cwd": "apps/learn-sigil"
+      },
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "build-darwin-amd64": {
+      "executor": "nx:run-commands",
+      "outputs": [
+        "{projectRoot}/bin"
+      ],
+      "options": {
+        "command": "make build-darwin-amd64",
+        "cwd": "apps/learn-sigil"
+      },
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "build-darwin-universal": {
+      "executor": "nx:run-commands",
+      "outputs": [
+        "{projectRoot}/bin"
+      ],
+      "options": {
+        "command": "make build-darwin-universal",
+        "cwd": "apps/learn-sigil"
+      },
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "build-linux-amd64": {
+      "executor": "nx:run-commands",
+      "outputs": [
+        "{projectRoot}/bin"
+      ],
+      "options": {
+        "command": "make build-linux-amd64",
+        "cwd": "apps/learn-sigil"
+      },
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "build-linux-arm64": {
+      "executor": "nx:run-commands",
+      "outputs": [
+        "{projectRoot}/bin"
+      ],
+      "options": {
+        "command": "make build-linux-arm64",
+        "cwd": "apps/learn-sigil"
+      },
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "build-windows-amd64": {
+      "executor": "nx:run-commands",
+      "outputs": [
+        "{projectRoot}/bin"
+      ],
+      "options": {
+        "command": "make build-windows-amd64",
+        "cwd": "apps/learn-sigil"
+      },
+      "dependsOn": [
+        "^build"
+      ]
+    },
+    "package": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "make package",
+        "cwd": "apps/learn-sigil"
+      },
+      "dependsOn": [
+        "build"
+      ]
+    },
+    "package-all": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "make package-all",
+        "cwd": "apps/learn-sigil"
+      },
+      "dependsOn": [
+        "build-all"
+      ]
+    },
+    "clean": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "make clean",
+        "cwd": "apps/learn-sigil"
+      }
+    },
+    "clean-all": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "make clean-all",
+        "cwd": "apps/learn-sigil"
+      }
+    },
+    "setup": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "make setup",
+        "cwd": "apps/learn-sigil"
+      }
+    }
+  },
+  "tags": [
+    "type:app",
+    "scope:desktop"
+  ],
+  "implicitDependencies": [
+    "sigil"
+  ]
+}

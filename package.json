@@ -6,6 +6,18 @@
     "libs/*",
     "apps/*"
   ],
+  "scripts": {
+    "build": "nx run-many -t build --all",
+    "build:sigil": "nx build sigil",
+    "build:app": "nx build learn-sigil",
+    "build:all-platforms": "nx build-all learn-sigil",
+    "dev:app": "nx dev learn-sigil",
+    "clean": "nx run-many -t clean --all",
+    "test": "nx run-many -t test --all",
+    "version:patch": "cd apps/learn-sigil && make version-patch",
+    "version:minor": "cd apps/learn-sigil && make version-minor",
+    "version:major": "cd apps/learn-sigil && make version-major"
+  },
   "devDependencies": {
     "npm-check-updates": "^19.0.0",
     "nx": "21.6.3",
