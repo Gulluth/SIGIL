@@ -1,5 +1,6 @@
 <script lang="ts">
   import Editor from "$lib/components/Editor.svelte";
+  import WindowResizeHandles from "$lib/components/WindowResizeHandles.svelte";
 
   // For now, always show the editor to test SIGIL integration
   // We'll add back the landing page and file management later
@@ -7,4 +8,5 @@
 
 <div class="h-full w-full bg-gray-800">
   <Editor />
+  <WindowResizeHandles />
 </div>

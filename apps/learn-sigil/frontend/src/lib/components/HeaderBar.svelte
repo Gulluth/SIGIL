@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { Application, Window } from "@wailsio/runtime";
+  import { onMount } from "svelte";
+  import { Application, Window, Events } from "@wailsio/runtime";
   import {
     createNewFile,
     openFile as openFileInStore,
@@ -16,6 +17,7 @@
   } from "../wails/fileSystem";
 
   let showMenu = $state(false);
+  let isMaximized = $state(false);
 
   // Computed filename from active file
   let displayFileName = $derived(() => {
@@ -26,15 +28,43 @@
     return activeFile.isDirty ? `${name} *` : name;
   });
 
-  // Initialize window lazily to avoid issues during SSR
-  let currentWindow: Window | null = null;
+  // Listen for window maximize/unmaximize events
+  onMount(() => {
+    const unsubMaximize = Events.On(Events.Types.Common.WindowMaximise, () => {
+      console.log("WindowMaximise event fired");
+      isMaximized = true;
+    });
 
-  function getWindow() {
-    if (!currentWindow) {
-      currentWindow = new Window();
-    }
-    return currentWindow;
-  }
+    const unsubUnmaximize = Events.On(
+      Events.Types.Common.WindowUnMaximise,
+      () => {
+        console.log("WindowUnMaximise event fired");
+        isMaximized = false;
+      },
+    );
+
+    const unsubRestore = Events.On(Events.Types.Common.WindowRestore, () => {
+      console.log("WindowRestore event fired");
+      isMaximized = false;
+    });
+
+    // Check initial maximize state
+    Window.IsMaximised()
+      .then((state) => {
+        console.log("Initial maximize state:", state);
+        isMaximized = state;
+      })
+      .catch((err) => {
+        console.error("Failed to check maximize state:", err);
+      });
+
+    // Cleanup
+    return () => {
+      unsubMaximize();
+      unsubUnmaximize();
+      unsubRestore();
+    };
+  });
 
   function toggleMenu() {
     showMenu = !showMenu;
@@ -46,7 +76,7 @@
 
   async function minimizeWindow() {
     try {
-      await getWindow().Minimise();
+      await Window.Minimise();
     } catch (error) {
       console.error("Failed to minimize window:", error);
     }
@@ -54,7 +84,11 @@
 
   async function maximizeWindow() {
     try {
-      await getWindow().ToggleMaximise();
+      await Window.ToggleMaximise();
+      // Manually update state after toggle
+      const newState = await Window.IsMaximised();
+      console.log("After toggle, maximize state:", newState);
+      isMaximized = newState;
     } catch (error) {
       console.error("Failed to maximize window:", error);
     }
@@ -177,7 +211,7 @@
     </div>
 
     <!-- Center: Draggable spacer -->
-    <div class="header-center"></div>
+    <div class="header-center" ondblclick={maximizeWindow}></div>
 
     <!-- Right side: Window controls -->
     <div class="header-right">
@@ -198,24 +232,61 @@
         </svg>
       </button>
 
-      <button class="window-btn" onclick={maximizeWindow} aria-label="Maximize">
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <rect
-            x="3"
-            y="3"
-            width="10"
-            height="10"
-            stroke="currentColor"
-            stroke-width="2"
+      <button
+        class="window-btn"
+        onclick={maximizeWindow}
+        aria-label={isMaximized ? "Restore" : "Maximize"}
+      >
+        {#if isMaximized}
+          <!-- Restore icon: overlapping squares (click to restore to window) -->
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
             fill="none"
-          />
-        </svg>
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <!-- Back square (smaller, offset) -->
+            <rect
+              x="5"
+              y="3"
+              width="8"
+              height="8"
+              stroke="currentColor"
+              stroke-width="2"
+              fill="none"
+            />
+            <!-- Front square (smaller, offset opposite) -->
+            <rect
+              x="3"
+              y="5"
+              width="8"
+              height="8"
+              stroke="currentColor"
+              stroke-width="2"
+              fill="#1e293b"
+            />
+          </svg>
+        {:else}
+          <!-- Maximize icon: single square (click to maximize) -->
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 16 16"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <rect
+              x="3"
+              y="3"
+              width="10"
+              height="10"
+              stroke="currentColor"
+              stroke-width="2"
+              fill="none"
+            />
+          </svg>
+        {/if}
       </button>
 
       <button

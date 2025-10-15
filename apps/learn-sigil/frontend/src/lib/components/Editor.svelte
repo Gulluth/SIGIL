@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from "svelte";
   import CodeEditor from "./CodeEditor.svelte";
   import OutputPanel from "./OutputPanel.svelte";
   import SplitPane from "./SplitPane.svelte";
@@ -17,8 +18,10 @@
     updateFileContent,
     getAllFileContents,
   } from "../state/editor.svelte.js";
-  import { openFileDialog } from "../wails/fileSystem";
+  import { openFileDialog, showErrorDialog } from "../wails/fileSystem";
   import { openFile as openFileInStore } from "../state/editor.svelte";
+  import { Events } from "@wailsio/runtime";
+  import { ReadFile } from "../../../bindings/github.com/Gulluth/SIGIL/apps/learn-sigil/fileservice";
 
   let templateId = $state("dot.notation");
   let output = $state("");
@@ -116,6 +119,55 @@
       updateFileContent(activeFile.id, newValue);
     }
   }
+
+  // Handle drag-and-drop file loading
+  onMount(() => {
+    const unsubscribe = Events.On(
+      Events.Types.Common.WindowFilesDropped,
+      async (event) => {
+        const files = event.data as string[] | undefined;
+
+        if (!files || files.length === 0) {
+          return;
+        }
+
+        console.log("Files dropped:", files);
+
+        // Filter for YAML files and load them
+        for (const filePath of files) {
+          const fileName =
+            filePath.split("/").pop() ||
+            filePath.split("\\").pop() ||
+            "dropped-file.yaml";
+          const lowerName = fileName.toLowerCase();
+
+          // Only accept .yaml and .yml files
+          if (lowerName.endsWith(".yaml") || lowerName.endsWith(".yml")) {
+            try {
+              const content = await ReadFile(filePath);
+              openFileInStore(fileName, content, filePath);
+              console.log(`Opened dropped file: ${fileName}`);
+            } catch (error) {
+              console.error(`Failed to load dropped file ${fileName}:`, error);
+              // Show error dialog for failed loads
+              await showErrorDialog(
+                "Error Loading File",
+                `Failed to load ${fileName}: ${error}`,
+              );
+            }
+          } else {
+            // Silently ignore non-YAML files as per decision
+            console.log(`Ignoring non-YAML file: ${fileName}`);
+          }
+        }
+      },
+    );
+
+    // Cleanup on unmount
+    return () => {
+      unsubscribe();
+    };
+  });
 
   function handleTabSelect(tabId: string) {
     switchToTab(tabId);
